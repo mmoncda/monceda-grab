@@ -14,6 +14,7 @@ const platforms: Platform[] = [
   { name: "TikTok", short: "♪", color: "#25f4ee" },
   { name: "X / Twitter", short: "X", color: "#f8fafc" },
   { name: "Pinterest", short: "P", color: "#e60023" },
+  { name: "YouTube", short: "▶", color: "#ff0033" },
 ];
 
 function detectPlatform(value: string) {
@@ -23,6 +24,7 @@ function detectPlatform(value: string) {
   if (url.includes("tiktok.com")) return platforms[2];
   if (url.includes("twitter.com") || url.includes("x.com")) return platforms[3];
   if (url.includes("pinterest.com") || url.includes("pin.it")) return platforms[4];
+  if (url.includes("youtube.com") || url.includes("youtu.be")) return platforms[5];
   return null;
 }
 
@@ -145,7 +147,7 @@ export default function Home() {
               checked={hasRights}
               onChange={(event) => { setHasRights(event.target.checked); setMessage(""); }}
             />
-            <span>I own this content, it is public domain, or I have permission to download it. I agree to the <a href="#terms">Terms of Use</a>.</span>
+            <span>I own this content, it is public domain, or I have explicit permission or another lawful right to download it. I agree to the <a href="#terms">Terms of Use</a>.</span>
           </label>
           {message && (
             <div className={downloadUrl ? "status success" : "status"} role="status">
@@ -215,7 +217,8 @@ export default function Home() {
         <div className="legal-grid">
           <article id="terms">
             <h3>Terms of Use</h3>
-            <p>Monceda Grab is provided only for public media that you own, public-domain media, or media you are authorized to download. You must follow copyright law and each platform&apos;s terms.</p>
+            <p>Monceda Grab is provided only for public media that you own, public-domain media, or media you have explicit permission or another lawful right to download. You must follow copyright law and each platform&apos;s terms.</p>
+            <p>For YouTube and other supported platforms, technical availability does not grant permission. Use a download only when the platform itself permits it, the rights holder authorizes it, or applicable law allows it.</p>
             <p>Do not use the service for private, login-protected, paywalled, restricted, or DRM-protected content; unlawful copying; harassment; surveillance; or commercial redistribution without permission. You are responsible for the links you submit and how you use downloaded files.</p>
             <p>The service is provided “as is” and may be limited, changed, or suspended to protect creators, users, platforms, or Monceda Labs.</p>
           </article>
@@ -232,7 +235,8 @@ export default function Home() {
           </article>
           <article id="disclaimer">
             <h3>Platform Disclaimer</h3>
-            <p>Monceda Grab and Monceda Labs are independent. They are not affiliated with, endorsed by, or sponsored by Facebook, Instagram, TikTok, X, Pinterest, or their owners. All names and trademarks belong to their respective owners.</p>
+            <p>Monceda Grab and Monceda Labs are independent. They are not affiliated with, endorsed by, or sponsored by YouTube, Google, Facebook, Instagram, TikTok, X, Pinterest, or their owners. All names and trademarks belong to their respective owners.</p>
+            <p>Support for a platform means only that a public link may be technically processed. It is not a statement that the platform approves downloading or that a user has rights to the content.</p>
             <p>Supported services may change without notice when a platform restricts access or when continued support creates legal, safety, or reliability concerns.</p>
           </article>
         </div>
