@@ -14,7 +14,6 @@ const platforms: Platform[] = [
   { name: "TikTok", short: "♪", color: "#25f4ee" },
   { name: "X / Twitter", short: "X", color: "#f8fafc" },
   { name: "Pinterest", short: "P", color: "#e60023" },
-  { name: "YouTube", short: "▶", color: "#ff0033" },
 ];
 
 function detectPlatform(value: string) {
@@ -24,7 +23,6 @@ function detectPlatform(value: string) {
   if (url.includes("tiktok.com")) return platforms[2];
   if (url.includes("twitter.com") || url.includes("x.com")) return platforms[3];
   if (url.includes("pinterest.com") || url.includes("pin.it")) return platforms[4];
-  if (url.includes("youtube.com") || url.includes("youtu.be")) return platforms[5];
   return null;
 }
 
@@ -41,12 +39,18 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
   const [isChecking, setIsChecking] = useState(false);
+  const [hasRights, setHasRights] = useState(false);
   const detected = useMemo(() => detectPlatform(url), [url]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setMessage("");
     setDownloadUrl("");
+
+    if (!hasRights) {
+      setMessage("Kailangan mong kumpirmahin na may karapatan o pahintulot kang i-download ang content.");
+      return;
+    }
 
     try {
       const parsed = new URL(url);
@@ -98,6 +102,7 @@ export default function Home() {
           <a href="#how">How it works</a>
           <a href="#platforms">Platforms</a>
           <a href="#safety">Safety</a>
+          <a href="#legal">Legal</a>
         </div>
         <span className="beta">BETA</span>
       </nav>
@@ -131,6 +136,14 @@ export default function Home() {
             <span>•</span>
             <span>Files aren&apos;t stored</span>
           </div>
+          <label className="rights-check">
+            <input
+              type="checkbox"
+              checked={hasRights}
+              onChange={(event) => { setHasRights(event.target.checked); setMessage(""); }}
+            />
+            <span>I own this content, it is public domain, or I have permission to download it. I agree to the <a href="#terms">Terms of Use</a>.</span>
+          </label>
           {message && (
             <div className={downloadUrl ? "status success" : "status"} role="status">
               {message}
@@ -183,6 +196,46 @@ export default function Home() {
           <p><strong>Respect creators.</strong> Download only content you own, content in the public domain, or content you have permission to use.</p>
         </div>
         <span>MONCEDA LABS · SOFTWARE SOLUTIONS. REAL IMPACT.</span>
+      </section>
+
+      <section className="legal shell" id="legal" aria-labelledby="legal-title">
+        <div className="section-heading legal-heading">
+          <span className="kicker">RESPONSIBLE USE</span>
+          <h2 id="legal-title">Legal &amp; trust.</h2>
+        </div>
+        <div className="legal-grid">
+          <article id="terms">
+            <h3>Terms of Use</h3>
+            <p>Monceda Grab is provided only for public media that you own, public-domain media, or media you are authorized to download. You must follow copyright law and each platform&apos;s terms.</p>
+            <p>Do not use the service for private, login-protected, paywalled, restricted, or DRM-protected content; unlawful copying; harassment; surveillance; or commercial redistribution without permission. You are responsible for the links you submit and how you use downloaded files.</p>
+            <p>The service is provided “as is” and may be limited, changed, or suspended to protect creators, users, platforms, or Monceda Labs.</p>
+          </article>
+          <article id="privacy">
+            <h3>Privacy Policy</h3>
+            <p>No account is required. The public URL you submit is sent to our processing provider so it can locate available media. Monceda Grab does not intentionally store downloaded files.</p>
+            <p>Our hosting, security, and processing providers may temporarily process technical data such as IP address, request time, submitted URL, browser information, rate-limit data, and error logs for delivery, security, and troubleshooting.</p>
+            <p>Do not submit URLs containing personal, confidential, or sensitive information.</p>
+          </article>
+          <article id="copyright">
+            <h3>Copyright &amp; Takedown</h3>
+            <p>We respect creators and rights holders. To report misuse or request review, email <a href="mailto:abuse@moncedalabs.com">abuse@moncedalabs.com</a> with your name, contact details, the original work, the relevant URL, and a good-faith explanation of your rights.</p>
+            <p>We may investigate, restrict access, preserve necessary records, or cooperate with hosting providers and lawful requests.</p>
+          </article>
+          <article id="disclaimer">
+            <h3>Platform Disclaimer</h3>
+            <p>Monceda Grab and Monceda Labs are independent. They are not affiliated with, endorsed by, or sponsored by Facebook, Instagram, TikTok, X, Pinterest, or their owners. All names and trademarks belong to their respective owners.</p>
+            <p>Supported services may change without notice when a platform restricts access or when continued support creates legal, safety, or reliability concerns.</p>
+          </article>
+        </div>
+        <footer className="legal-footer">
+          <span>© 2026 Monceda Labs</span>
+          <nav aria-label="Legal links">
+            <a href="#terms">Terms</a>
+            <a href="#privacy">Privacy</a>
+            <a href="#copyright">Copyright</a>
+            <a href="mailto:abuse@moncedalabs.com">Report abuse</a>
+          </nav>
+        </footer>
       </section>
     </main>
   );
