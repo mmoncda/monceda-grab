@@ -195,7 +195,13 @@ export default function Home() {
           <span className="shield">✓</span>
           <p><strong>Respect creators.</strong> Download only content you own, content in the public domain, or content you have permission to use.</p>
         </div>
-        <span>MONCEDA LABS · SOFTWARE SOLUTIONS. REAL IMPACT.</span>
+        <div className="trust-links">
+          <a href="https://safeweb.norton.com/" target="_blank" rel="noopener noreferrer" aria-label="View Norton Safe Web">
+            <span className="trust-check">✓</span>
+            <span><strong>Norton Safe Web rating: Safe</strong><small>Analyzed August 11, 2026</small></span>
+          </a>
+          <span>MONCEDA LABS · SOFTWARE SOLUTIONS. REAL IMPACT.</span>
+        </div>
       </section>
 
       <section className="legal shell" id="legal" aria-labelledby="legal-title">
