@@ -96,8 +96,9 @@ export default function Home() {
       <nav className="nav shell" aria-label="Main navigation">
         <a className="brand" href="#top" aria-label="Monceda Grab home">
           <span className="brand-mark" aria-hidden="true">
-            <span className="brand-letter">M</span>
-            <span className="brand-notch">⌄</span>
+            <span className="logo-wing logo-wing-left" />
+            <span className="logo-wing logo-wing-right" />
+            <span className="logo-center" />
           </span>
           <span className="brand-name"><span>MONCEDA</span><b>GRAB</b></span>
         </a>
