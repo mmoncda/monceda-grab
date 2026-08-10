@@ -13,8 +13,9 @@ button,input { font:inherit; }
 .brand-name { display:flex; align-items:baseline; gap:6px; }
 .brand-name b { color:#60a5fa; }
 .brand-mark { position:relative; width:42px; height:42px; display:flex; align-items:center; justify-content:center; border-radius:13px; border:1px solid rgba(147,197,253,.38); background:radial-gradient(circle at 30% 20%,rgba(147,197,253,.38),transparent 38%),linear-gradient(145deg,#2563eb,#172554); box-shadow:0 10px 30px rgba(37,99,235,.3),inset 0 1px 0 rgba(255,255,255,.2); overflow:hidden; }
-.brand-arrow { position:relative; z-index:1; color:#fff; font-size:24px; font-weight:900; line-height:1; transform:translateY(-3px); text-shadow:0 3px 12px rgba(191,219,254,.45); }
-.brand-tray { position:absolute; left:10px; right:10px; bottom:8px; height:8px; border:2px solid #bfdbfe; border-top:0; border-radius:0 0 6px 6px; opacity:.9; }
+.brand-letter { position:relative; z-index:1; color:#fff; font-size:20px; font-weight:950; line-height:1; letter-spacing:-.12em; transform:translate(-1px,-2px) skewX(-4deg); text-shadow:0 5px 16px rgba(191,219,254,.42); }
+.brand-notch { position:absolute; z-index:2; right:7px; bottom:5px; width:15px; height:15px; display:grid; place-items:center; border-radius:5px; color:#dbeafe; background:#0b1c45; border:1px solid rgba(147,197,253,.35); font-size:12px; font-weight:900; line-height:1; }
+.brand-mark::before { content:""; position:absolute; left:8px; top:8px; width:9px; height:9px; border-left:2px solid rgba(191,219,254,.55); border-top:2px solid rgba(191,219,254,.55); border-radius:3px 0 0; }
 .brand-mark::after { content:""; position:absolute; width:6px; height:6px; right:6px; top:6px; border-radius:50%; background:#60a5fa; box-shadow:0 0 14px #60a5fa; }
 .nav-links { margin:auto; display:flex; gap:34px; color:#9aa9bc; font-size:13px; }
 .nav-links a:hover { color:#fff; }
