@@ -13,8 +13,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Monceda Grab — Save Public Media Simply",
-  description: "Download public, authorized social media videos and images in a clean, simple experience.",
+  metadataBase: new URL("https://grab.moncedalabs.com"),
+  title: "Monceda Grab — Public Media Downloader",
+  description: "Save public, authorized social media videos and images with Monceda Grab—a fast, private, and simple tool from Monceda Labs.",
+  applicationName: "Monceda Grab",
+  authors: [{ name: "Monceda Labs", url: "https://moncedalabs.com" }],
+  creator: "Monceda Labs",
+  publisher: "Monceda Labs",
+  keywords: ["Monceda Grab", "public media downloader", "social media downloader", "Monceda Labs"],
+  alternates: { canonical: "/" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "Monceda Grab",
+    title: "Monceda Grab — Public Media Downloader",
+    description: "Save public media you own or have permission to download—simple, fast, and private.",
+    locale: "en_PH",
+  },
+  twitter: {
+    card: "summary",
+    title: "Monceda Grab — Public Media Downloader",
+    description: "Save public media you own or have permission to download—simple, fast, and private.",
+  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -31,6 +56,26 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "Monceda Grab",
+              url: "https://grab.moncedalabs.com/",
+              applicationCategory: "MultimediaApplication",
+              operatingSystem: "Any",
+              isAccessibleForFree: true,
+              creator: {
+                "@type": "Organization",
+                name: "Monceda Labs",
+                url: "https://moncedalabs.com/",
+              },
+              description: "A simple tool for saving public media that users own or have permission to download.",
+            }),
+          }}
+        />
         {children}
       </body>
     </html>
