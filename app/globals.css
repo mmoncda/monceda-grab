@@ -29,6 +29,8 @@ button,input { font:inherit; }
 h1 { margin:25px 0 20px; font-size:clamp(50px,7vw,86px); line-height:.98; letter-spacing:-.055em; max-width:920px; }
 h1 em { font-style:normal; color:#60a5fa; }
 .hero-copy { max-width:660px; color:var(--muted); font-size:17px; line-height:1.7; }
+.no-popup-note { margin-top:11px; color:#8291a6; font-size:11px; letter-spacing:.03em; }
+.no-popup-note span { color:#4ade80; margin-right:6px; }
 .grab-form { width:min(850px,100%); margin-top:38px; }
 .url-box { min-height:75px; border:1px solid rgba(96,165,250,.28); border-radius:17px; padding:9px 9px 9px 22px; display:flex; align-items:center; background:rgba(14,23,38,.88); box-shadow:0 25px 70px rgba(0,0,0,.35),0 0 0 5px rgba(37,99,235,.025); }
 .link-icon { width:22px; margin-right:13px; color:#73839a; }
@@ -46,10 +48,19 @@ h1 em { font-style:normal; color:#60a5fa; }
 .rights-check a,.legal a { color:#60a5fa; text-decoration:underline; text-underline-offset:3px; }
 .status { margin:16px auto 0; width:fit-content; padding:10px 16px; border-radius:10px; color:#fca5a5; background:rgba(127,29,29,.18); border:1px solid rgba(248,113,113,.2); font-size:12px; }
 .status.success { color:#93c5fd; background:rgba(30,64,175,.15); border-color:rgba(96,165,250,.2); }
+.download-link { display:inline-block; margin-left:10px; padding:8px 12px; border-radius:8px; color:#fff; background:#2563eb; font-weight:800; text-decoration:none; }
 .platform-row { margin-top:auto; padding-top:70px; display:flex; flex-wrap:wrap; justify-content:center; gap:32px; color:#728197; }
 .platform { display:flex; align-items:center; gap:8px; font-size:12px; }
 .platform span { width:20px; height:20px; display:grid; place-items:center; font-weight:900; }
 .steps { padding:105px 0; border-top:1px solid var(--line); }
+.ad-section { padding:28px 0; }
+.ad-wrap,.house-ad { min-height:112px; border:1px solid var(--line); border-radius:16px; background:rgba(9,16,27,.68); }
+.ad-wrap { padding:23px; }
+.ad-label { display:block; margin-bottom:12px; color:#526176; font-size:9px; letter-spacing:.2em; text-align:center; }
+.house-ad { padding:24px 28px; display:flex; align-items:center; gap:25px; }
+.house-ad>span { color:#60a5fa; font-size:10px; font-weight:900; letter-spacing:.2em; }
+.house-ad strong { color:#aab8ca; font-size:14px; font-weight:600; }
+.house-ad a { margin-left:auto; color:#60a5fa; font-size:12px; font-weight:800; white-space:nowrap; }
 .section-heading { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:48px; }
 .section-heading h2 { margin:0; font-size:clamp(35px,5vw,56px); line-height:1.03; letter-spacing:-.045em; }
 .step-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
@@ -59,6 +70,9 @@ h1 em { font-style:normal; color:#60a5fa; }
 .step-grid h3 { margin:48px 0 12px; font-size:20px; }
 .step-grid p { margin:0; color:#7e8da2; font-size:14px; line-height:1.7; }
 .safety { padding:36px 0 50px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:35px; color:#69788d; font-size:11px; letter-spacing:.08em; }
+.about { padding:105px 0; border-top:1px solid var(--line); }
+.about-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+.about-grid p { margin:0; padding:28px; border:1px solid var(--line); border-radius:18px; background:rgba(11,18,30,.72); color:#8492a6; font-size:13px; line-height:1.75; }
 .safety div { display:flex; align-items:center; gap:13px; max-width:700px; letter-spacing:0; font-size:12px; }
 .safety p { margin:0; line-height:1.55; }
 .safety strong { color:#a9b7ca; }
@@ -92,9 +106,12 @@ h1 em { font-style:normal; color:#60a5fa; }
   .detected { order:2; }
   .form-meta { flex-wrap:wrap; }
   .platform-row { gap:17px 23px; }
+  .house-ad { align-items:flex-start; flex-direction:column; gap:10px; }
+  .house-ad a { margin-left:0; }
   .section-heading { display:block; }
   .section-heading .kicker { display:block; margin-bottom:18px; }
   .step-grid { grid-template-columns:1fr; }
+  .about-grid { grid-template-columns:1fr; }
   .step-grid article { min-height:245px; }
   .safety { align-items:flex-start; flex-direction:column; }
   .trust-links { margin-left:0; align-items:flex-start!important; flex-direction:column; }

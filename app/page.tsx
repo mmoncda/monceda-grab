@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { AdSlot } from "./ad-slot";
 
 type Platform = {
   name: string;
@@ -105,6 +106,7 @@ export default function Home() {
         <div className="nav-links">
           <a href="#how">How it works</a>
           <a href="#platforms">Platforms</a>
+          <a href="#about">About</a>
           <a href="#safety">Safety</a>
           <a href="#legal">Legal</a>
         </div>
@@ -117,6 +119,8 @@ export default function Home() {
         <p className="hero-copy">
           Paste a public social media link and save the available video or image—cleanly, quickly, and without the clutter.
         </p>
+
+        <div className="no-popup-note"><span>✓</span> No pop-ups · No forced ad tabs · No misleading download buttons</div>
 
         <form className="grab-form" onSubmit={handleSubmit}>
           <div className="url-box">
@@ -152,7 +156,7 @@ export default function Home() {
             <div className={downloadUrl ? "status success" : "status"} role="status">
               {message}
               {downloadUrl && (
-                <> <a href={downloadUrl} target="_blank" rel="noopener noreferrer">Download media</a></>
+                <> <a className="download-link" href={downloadUrl} download rel="nofollow">Download media ↓</a></>
               )}
             </div>
           )}
@@ -165,6 +169,10 @@ export default function Home() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="ad-section shell" aria-label="Sponsored content">
+        <AdSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP} placement="after-tool" />
       </section>
 
       <section className="steps shell" id="how">
@@ -192,6 +200,22 @@ export default function Home() {
             <p>Select an available quality or format, then download directly to your device.</p>
           </article>
         </div>
+      </section>
+
+      <section className="about shell" id="about">
+        <div className="section-heading">
+          <span className="kicker">BUILT FOR RESPONSIBLE SAVING</span>
+          <h2>A cleaner kind of<br />media tool.</h2>
+        </div>
+        <div className="about-grid">
+          <p>Monceda Grab is an independent utility from Monceda Labs for saving publicly available media when the user owns it, has permission, or otherwise has a lawful right to download it.</p>
+          <p>We keep the experience straightforward: no account wall, no fake buttons, and no advertising page launched when you press download. Ads, when enabled, stay in clearly labeled spaces on this page.</p>
+          <p>Because social platforms change frequently, availability can vary. We do not bypass private accounts, paywalls, access controls, or digital rights management.</p>
+        </div>
+      </section>
+
+      <section className="ad-section shell" aria-label="Sponsored content">
+        <AdSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_CONTENT} placement="before-legal" />
       </section>
 
       <section className="safety shell" id="safety">
@@ -225,6 +249,7 @@ export default function Home() {
             <h3>Privacy Policy</h3>
             <p>No account is required. The public URL you submit is sent to our processing provider so it can locate available media. Monceda Grab does not intentionally store downloaded files.</p>
             <p>Our hosting, security, and processing providers may temporarily process technical data such as IP address, request time, submitted URL, browser information, rate-limit data, and error logs for delivery, security, and troubleshooting.</p>
+            <p>If advertising is enabled, advertising partners may use cookies or similar technologies to measure ads, prevent fraud, and personalize or limit advertising as allowed by your location and choices. We will identify advertising clearly and update this policy when a specific provider is activated.</p>
             <p>Do not submit URLs containing personal, confidential, or sensitive information.</p>
           </article>
           <article id="copyright">
@@ -242,9 +267,11 @@ export default function Home() {
         <footer className="legal-footer">
           <span>© 2026 Monceda Labs</span>
           <nav aria-label="Legal links">
+            <a href="#about">About</a>
             <a href="#terms">Terms</a>
             <a href="#privacy">Privacy</a>
             <a href="#copyright">Copyright</a>
+            <a href="mailto:hello@moncedalabs.com">Contact</a>
             <a href="mailto:abuse@moncedalabs.com">Report abuse</a>
           </nav>
         </footer>
