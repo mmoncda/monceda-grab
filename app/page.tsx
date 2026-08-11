@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { AdSlot } from "./ad-slot";
+import Link from "next/link";
 
 type Platform = {
   name: string;
@@ -105,10 +106,9 @@ export default function Home() {
         </a>
         <div className="nav-links">
           <a href="#how">How it works</a>
-          <a href="#platforms">Platforms</a>
-          <a href="#about">About</a>
-          <a href="#safety">Safety</a>
-          <a href="#legal">Legal</a>
+          <Link href="/guides">Guides</Link>
+          <Link href="/about">About</Link>
+          <Link href="/privacy">Privacy</Link>
         </div>
         <span className="beta">BETA</span>
       </nav>
@@ -214,6 +214,12 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="guide-preview shell">
+        <div className="section-heading"><span className="kicker">ORIGINAL LEARNING LIBRARY</span><h2>Download less blindly.<br />Save more responsibly.</h2></div>
+        <div className="guide-preview-grid"><Link href="/guides/how-to-save-your-own-public-media"><span>PERMISSION</span><strong>How to save your own public posts</strong><small>5 MIN READ →</small></Link><Link href="/guides/public-links-private-content-and-permission"><span>RIGHTS</span><strong>Public access is not public ownership</strong><small>6 MIN READ →</small></Link><Link href="/guides/protect-privacy-when-using-link-tools"><span>PRIVACY</span><strong>Inspect a link before you paste it</strong><small>5 MIN READ →</small></Link></div>
+        <Link className="all-guides" href="/guides">VIEW ALL RESPONSIBLE MEDIA GUIDES →</Link>
+      </section>
+
       <section className="ad-section shell" aria-label="Sponsored content">
         <AdSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_CONTENT} placement="before-legal" />
       </section>
@@ -268,9 +274,9 @@ export default function Home() {
           <span>© 2026 Monceda Labs</span>
           <nav aria-label="Legal links">
             <a href="#about">About</a>
-            <a href="#terms">Terms</a>
-            <a href="#privacy">Privacy</a>
-            <a href="#copyright">Copyright</a>
+            <Link href="/terms">Terms</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/copyright">Copyright</Link>
             <a href="mailto:hello@moncedalabs.com">Contact</a>
             <a href="mailto:abuse@moncedalabs.com">Report abuse</a>
           </nav>

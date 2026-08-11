@@ -34,11 +34,13 @@ export const metadata: Metadata = {
     title: "Monceda Grab — Public Media Downloader",
     description: "Save public media you own or have permission to download—simple, fast, and private.",
     locale: "en_PH",
+    images: [{ url: "/og.png", width: 1536, height: 1024, alt: "Monceda Grab — Save public media responsibly." }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Monceda Grab — Public Media Downloader",
     description: "Save public media you own or have permission to download—simple, fast, and private.",
+    images: ["/og.png"],
   },
   icons: {
     icon: "/favicon.svg",
