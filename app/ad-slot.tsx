@@ -13,7 +13,7 @@ type AdSlotProps = {
   placement: string;
 };
 
-const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "ca-pub-8831839251689024";
 
 export function AdSlot({ slot, placement }: AdSlotProps) {
   const enabled = Boolean(client && slot);
