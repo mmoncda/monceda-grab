@@ -64,7 +64,7 @@ export default function Home() {
 
     setIsChecking(true);
     try {
-      const response = await fetch("https://monceda-grab-api.onrender.com/", {
+      const response = await fetch("https://monceda-grab-api-us.onrender.com/", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ url }),
@@ -72,7 +72,16 @@ export default function Home() {
       const result = await response.json();
 
       if (!response.ok || result.status === "error") {
-        throw new Error(result.error?.code || "Media could not be processed");
+        const code = result.error?.code;
+        const friendlyMessage =
+          code === "error.api.fetch.fail"
+            ? "Hindi makuha ng processor ang post. Siguraduhing public at available ang link, pagkatapos ay subukan ulit."
+            : code === "error.api.fetch.empty"
+              ? "Walang downloadable video o image na nakita sa link."
+              : code === "error.api.link.invalid"
+                ? "Hindi valid o hindi supported ang link na ito."
+                : "Hindi ma-process ang media ngayon. Subukan ulit mamaya.";
+        throw new Error(friendlyMessage);
       }
 
       const mediaUrl = result.url || result.picker?.[0]?.url;
@@ -85,7 +94,7 @@ export default function Home() {
     } catch (error) {
       setMessage(
         error instanceof Error
-          ? `Hindi ma-process ang link: ${error.message}`
+          ? error.message
           : "Hindi ma-process ang link ngayon. Subukan ulit.",
       );
     } finally {

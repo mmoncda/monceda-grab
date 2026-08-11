@@ -43,9 +43,9 @@ Environment variables:
 
 | Key | Value |
 | --- | --- |
-| `API_URL` | `https://monceda-grab-api.onrender.com/` |
+| `API_URL` | `https://monceda-grab-api-us.onrender.com/` |
 | `CORS_WILDCARD` | `0` |
-| `CORS_URL` | `https://monceda-grab.shancerecel101.chatgpt.site` |
+| `CORS_URL` | `https://grab.moncedalabs.com` |
 | `DURATION_LIMIT` | `1800` |
 | `RATELIMIT_WINDOW` | `60` |
 | `RATELIMIT_MAX` | `10` |
