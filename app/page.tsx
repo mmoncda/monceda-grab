@@ -64,7 +64,7 @@ export default function Home() {
 
     setIsChecking(true);
     try {
-      const response = await fetch("https://monceda-grab-api-us.onrender.com/", {
+      const response = await fetch("/api/grab", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ url }),
@@ -85,8 +85,24 @@ export default function Home() {
       }
 
       const mediaUrl = result.url || result.picker?.[0]?.url;
+      const returnedFilename = String(result.filename || "").toLowerCase();
+
       if (!mediaUrl) {
         throw new Error("No downloadable media was returned");
+      }
+
+      const isInstagramReel =
+        detected?.name === "Instagram" &&
+        /instagram\.com\/reel\//i.test(url);
+
+      const returnedImageForReel =
+        isInstagramReel &&
+        /\.(jpe?g|png|webp|gif)$/i.test(returnedFilename);
+
+      if (returnedImageForReel) {
+        throw new Error(
+          "Instagram returned only a preview image for this Reel. The video source is temporarily unavailable. Please try another Reel or try again later."
+        );
       }
 
       setDownloadUrl(mediaUrl);
