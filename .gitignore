@@ -12,3 +12,6 @@ dist/
 
 # Local testing tools
 tools/
+
+# Separate Render fallback service
+processor/
