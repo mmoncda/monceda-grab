@@ -65,14 +65,14 @@ function getHost(value: string) {
   }
 }
 
-function isInstagramReel(value: string) {
+function isInstagramMediaPost(value: string) {
   try {
     const parsed = new URL(value);
     const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
 
     return (
       host === "instagram.com" &&
-      /^\/reel\//i.test(parsed.pathname)
+      /^\/(?:reel|p|tv)\//i.test(parsed.pathname)
     );
   } catch {
     return false;
@@ -113,13 +113,13 @@ export async function POST(request: Request) {
     }
 
     /*
-     * Instagram Reels:
+     * Instagram media posts:
      * Use our yt-dlp fallback directly.
      *
-     * Cobalt currently fails on some public Instagram Reels,
+     * Cobalt currently fails on some public Instagram posts,
      * while the fallback successfully resolves the actual video.
      */
-    if (isInstagramReel(url)) {
+    if (isInstagramMediaPost(url)) {
       const fallbackResponse = await fetch(FALLBACK_API, {
         method: "POST",
         headers: {
