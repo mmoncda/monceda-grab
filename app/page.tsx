@@ -195,7 +195,17 @@ export default function Home() {
       }
 
       setDownloadFilename(safeFilename);
-      setDownloadUrl(mediaUrl);
+
+      const resolvedDownloadUrl =
+        detected?.name === "Snapchat"
+          ? `/api/download?url=${encodeURIComponent(
+              String(mediaUrl).replace(/&amp;/g, "&"),
+            )}&filename=${encodeURIComponent(
+              safeFilename,
+            )}`
+          : mediaUrl;
+
+      setDownloadUrl(resolvedDownloadUrl);
       setMessage(`${detected?.name} media is ready.`);
     } catch (error) {
       setMessage(
