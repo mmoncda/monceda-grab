@@ -102,6 +102,11 @@ export default function Home() {
       }
 
       const mediaUrl = result.url || result.picker?.[0]?.url;
+      const audioUrl =
+        typeof result.audio_url === "string"
+          ? result.audio_url
+          : "";
+
       const originalFilename =
         String(result.filename || "").trim();
 
@@ -179,7 +184,13 @@ export default function Home() {
               String(mediaUrl).replace(/&amp;/g, "&"),
             )}&filename=${encodeURIComponent(
               safeFilename,
-            )}`
+            )}${
+              detected?.name === "Instagram" && audioUrl
+                ? `&audio_url=${encodeURIComponent(
+                    audioUrl.replace(/&amp;/g, "&"),
+                  )}`
+                : ""
+            }`
           : mediaUrl;
 
       setDownloadUrl(resolvedDownloadUrl);

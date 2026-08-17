@@ -39,6 +39,9 @@ export async function GET(request: Request) {
     let mediaUrl =
       requestUrl.searchParams.get("url") || "";
 
+    let audioUrl =
+      requestUrl.searchParams.get("audio_url") || "";
+
     const filename = sanitizeFilename(
       requestUrl.searchParams.get("filename") ||
         "snapchat-media.mp4",
@@ -49,8 +52,24 @@ export async function GET(request: Request) {
      * query separators.
      */
     mediaUrl = mediaUrl.replace(/&amp;/g, "&");
+    audioUrl = audioUrl.replace(/&amp;/g, "&");
 
     if (!isAllowedMediaUrl(mediaUrl)) {
+      return Response.json(
+        {
+          status: "error",
+          error: {
+            code: "error.api.download.invalid",
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    if (
+      audioUrl &&
+      !isAllowedMediaUrl(audioUrl)
+    ) {
       return Response.json(
         {
           status: "error",
@@ -81,6 +100,9 @@ export async function GET(request: Request) {
             },
             body: JSON.stringify({
               url: mediaUrl,
+              ...(audioUrl
+                ? { audio_url: audioUrl }
+                : {}),
             }),
           },
         )
