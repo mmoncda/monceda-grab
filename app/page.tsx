@@ -196,8 +196,12 @@ export default function Home() {
 
       setDownloadFilename(safeFilename);
 
+      const shouldProxyDownload =
+        detected?.name === "Snapchat" ||
+        detected?.name === "X / Twitter";
+
       const resolvedDownloadUrl =
-        detected?.name === "Snapchat"
+        shouldProxyDownload
           ? `/api/download?url=${encodeURIComponent(
               String(mediaUrl).replace(/&amp;/g, "&"),
             )}&filename=${encodeURIComponent(

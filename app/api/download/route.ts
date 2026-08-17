@@ -1,4 +1,4 @@
-function isAllowedSnapchatMediaUrl(value: string) {
+function isAllowedMediaUrl(value: string) {
   try {
     const parsed = new URL(value);
     const host = parsed.hostname.toLowerCase();
@@ -7,7 +7,8 @@ function isAllowedSnapchatMediaUrl(value: string) {
       parsed.protocol === "https:" &&
       (
         host === "sc-cdn.net" ||
-        host.endsWith(".sc-cdn.net")
+        host.endsWith(".sc-cdn.net") ||
+        host === "video.twimg.com"
       )
     );
   } catch {
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
      */
     mediaUrl = mediaUrl.replace(/&amp;/g, "&");
 
-    if (!isAllowedSnapchatMediaUrl(mediaUrl)) {
+    if (!isAllowedMediaUrl(mediaUrl)) {
       return Response.json(
         {
           status: "error",
@@ -114,7 +115,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error(
-      "Snapchat download proxy error:",
+      "Media download proxy error:",
       error,
     );
 
