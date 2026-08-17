@@ -54,6 +54,17 @@ function cobaltReturnedImageOnly(result: any) {
   return hasImage && !hasVideo;
 }
 
+function getHost(value: string) {
+  try {
+    return new URL(value)
+      .hostname
+      .replace(/^www\./, "")
+      .toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
 function isInstagramReel(value: string) {
   try {
     const parsed = new URL(value);
@@ -66,6 +77,15 @@ function isInstagramReel(value: string) {
   } catch {
     return false;
   }
+}
+
+function isBluesky(value: string) {
+  return getHost(value) === "bsky.app";
+}
+
+function isDailymotion(value: string) {
+  const host = getHost(value);
+  return host === "dailymotion.com" || host === "dai.ly";
 }
 
 export async function POST(request: Request) {
@@ -106,17 +126,45 @@ export async function POST(request: Request) {
       });
     }
 
-    // 2. Cobalt sometimes returns the Reel preview JPG.
-    //    Only use fallback for that specific failure.
+    // 2. Use yt-dlp fallback for:
+    //    - Instagram Reels when Cobalt returns only an image
+    //    - Bluesky tunnel responses because the current Cobalt
+    //      tunnel can return a zero-byte download.
     const shouldUseFallback =
-      isInstagramReel(url) &&
-      cobaltReturnedImageOnly(cobaltResult);
+      (
+        isInstagramReel(url) &&
+        cobaltReturnedImageOnly(cobaltResult)
+      ) ||
+      (
+        isBluesky(url) &&
+        cobaltResult?.status === "tunnel"
+      );
+
+    // Dailymotion currently returns a broken Cobalt tunnel,
+    // while the yt-dlp fallback requires unavailable browser
+    // impersonation on the current Render runtime.
+    if (
+      isDailymotion(url) &&
+      cobaltResult?.status === "tunnel"
+    ) {
+      return Response.json(
+        {
+          status: "error",
+          error: {
+            code: "error.api.fetch.fail",
+            message:
+              "Dailymotion downloads are temporarily unavailable while the media processor is being updated.",
+          },
+        },
+        { status: 422 },
+      );
+    }
 
     if (!shouldUseFallback) {
       return Response.json(cobaltResult);
     }
 
-    // 3. Instagram Reel video fallback: yt-dlp service
+    // 3. yt-dlp video fallback
     const fallbackResponse = await fetch(FALLBACK_API, {
       method: "POST",
       headers: {
@@ -145,7 +193,7 @@ export async function POST(request: Request) {
         error: {
           code: "error.api.fetch.fail",
           message:
-            "The primary processor returned only a preview image and the video fallback could not retrieve the Reel.",
+            "The primary processor could not provide a usable video and the fallback processor also failed.",
         },
       },
       { status: 422 },
