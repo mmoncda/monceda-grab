@@ -16,21 +16,8 @@ const platforms: Platform[] = [
   { name: "TikTok", short: "♪", color: "#25f4ee" },
   { name: "X / Twitter", short: "X", color: "#f8fafc" },
   { name: "Pinterest", short: "P", color: "#e60023" },
-  { name: "Reddit", short: "r", color: "#ff4500" },
   { name: "Bluesky", short: "B", color: "#60a5fa" },
-  { name: "Tumblr", short: "t", color: "#94a3b8" },
-  { name: "Vimeo", short: "V", color: "#38bdf8" },
-  { name: "Twitch Clips", short: "T", color: "#a78bfa" },
   { name: "Snapchat", short: "S", color: "#fde047" },
-  { name: "Dailymotion", short: "D", color: "#60a5fa" },
-  { name: "Streamable", short: "S", color: "#3b82f6" },
-  { name: "Loom", short: "L", color: "#a78bfa" },
-  { name: "Bilibili", short: "b", color: "#fb7185" },
-  { name: "Newgrounds", short: "N", color: "#f59e0b" },
-  { name: "VK", short: "VK", color: "#60a5fa" },
-  { name: "OK.ru", short: "OK", color: "#fb923c" },
-  { name: "Rutube", short: "R", color: "#a78bfa" },
-  { name: "SoundCloud", short: "SC", color: "#fb923c" },
 ];
 
 function detectPlatform(value: string) {
@@ -41,21 +28,8 @@ function detectPlatform(value: string) {
   if (url.includes("tiktok.com")) return platforms[2];
   if (url.includes("twitter.com") || url.includes("x.com")) return platforms[3];
   if (url.includes("pinterest.com") || url.includes("pin.it")) return platforms[4];
-  if (url.includes("reddit.com") || url.includes("redd.it")) return platforms[5];
-  if (url.includes("bsky.app")) return platforms[6];
-  if (url.includes("tumblr.com")) return platforms[7];
-  if (url.includes("vimeo.com")) return platforms[8];
-  if (url.includes("clips.twitch.tv") || url.includes("twitch.tv")) return platforms[9];
-  if (url.includes("snapchat.com")) return platforms[10];
-  if (url.includes("dailymotion.com") || url.includes("dai.ly")) return platforms[11];
-  if (url.includes("streamable.com")) return platforms[12];
-  if (url.includes("loom.com")) return platforms[13];
-  if (url.includes("bilibili.com") || url.includes("b23.tv")) return platforms[14];
-  if (url.includes("newgrounds.com")) return platforms[15];
-  if (url.includes("vk.com") || url.includes("vkvideo.ru")) return platforms[16];
-  if (url.includes("ok.ru")) return platforms[17];
-  if (url.includes("rutube.ru")) return platforms[18];
-  if (url.includes("soundcloud.com")) return platforms[19];
+  if (url.includes("bsky.app")) return platforms[5];
+  if (url.includes("snapchat.com")) return platforms[6];
 
   return null;
 }
@@ -115,9 +89,7 @@ export default function Home() {
         const friendlyMessage =
           apiMessage ||
           (
-            code === "error.api.vimeo.unavailable"
-              ? "Vimeo downloads are temporarily unavailable because Vimeo currently requires authentication for media extraction."
-              : code === "error.api.fetch.fail"
+            code === "error.api.fetch.fail"
                 ? "The media processor could not retrieve this post. Make sure the link is public and still available, then try again."
                 : code === "error.api.fetch.empty"
                 ? "No downloadable video or image was found at this link."
