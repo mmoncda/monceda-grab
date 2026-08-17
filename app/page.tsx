@@ -72,6 +72,7 @@ export default function Home() {
   const [url, setUrl] = useState("");
   const [message, setMessage] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
+  const [downloadFilename, setDownloadFilename] = useState("");
   const [isChecking, setIsChecking] = useState(false);
   const [hasRights, setHasRights] = useState(false);
   const detected = useMemo(() => detectPlatform(url), [url]);
@@ -80,6 +81,7 @@ export default function Home() {
     event.preventDefault();
     setMessage("");
     setDownloadUrl("");
+    setDownloadFilename("");
 
     if (!hasRights) {
       setMessage("Please confirm that you have the right or permission to download this content.");
@@ -90,7 +92,7 @@ export default function Home() {
       const parsed = new URL(url);
       if (!/^https?:$/.test(parsed.protocol) || !detected) throw new Error();
     } catch {
-      setMessage("Maglagay ng valid public link mula sa supported platform.");
+      setMessage("Enter a valid public link from a supported platform.");
       return;
     }
 
@@ -128,8 +130,11 @@ export default function Home() {
       }
 
       const mediaUrl = result.url || result.picker?.[0]?.url;
+      const originalFilename =
+        String(result.filename || "").trim();
+
       const returnedFilename =
-        String(result.filename || "").toLowerCase();
+        originalFilename.toLowerCase();
 
       const returnedMediaUrl =
         String(mediaUrl || "")
@@ -161,6 +166,35 @@ export default function Home() {
         );
       }
 
+      let safeFilename =
+        originalFilename || "monceda-grab-media";
+
+      const hasKnownExtension =
+        /\.(mp4|mov|m4v|webm|jpe?g|png|webp|gif|avif|mp3|m4a|aac|ogg|wav)$/i.test(
+          safeFilename,
+        );
+
+      if (!hasKnownExtension) {
+        const mediaExtension =
+          returnedMediaUrl.match(
+            /\.(mp4|mov|m4v|webm|jpe?g|png|webp|gif|avif|mp3|m4a|aac|ogg|wav)$/i,
+          )?.[1];
+
+        if (mediaExtension) {
+          safeFilename += `.${mediaExtension.toLowerCase()}`;
+        } else if (
+          detected?.name === "Snapchat"
+        ) {
+          /*
+           * Snapchat video responses can arrive with a
+           * filename that has no extension even though the
+           * returned media is an MP4 video.
+           */
+          safeFilename += ".mp4";
+        }
+      }
+
+      setDownloadFilename(safeFilename);
       setDownloadUrl(mediaUrl);
       setMessage(`${detected?.name} media is ready.`);
     } catch (error) {
@@ -237,7 +271,14 @@ export default function Home() {
             <div className={downloadUrl ? "status success" : "status"} role="status">
               {message}
               {downloadUrl && (
-                <> <a className="download-link" href={downloadUrl} download rel="nofollow">Download media ↓</a></>
+                <> <a
+                  className="download-link"
+                  href={downloadUrl}
+                  download={downloadFilename || true}
+                  rel="nofollow"
+                >
+                  Download media ↓
+                </a></>
               )}
             </div>
           )}
