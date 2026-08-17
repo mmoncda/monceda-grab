@@ -88,6 +88,15 @@ function isDailymotion(value: string) {
   return host === "dailymotion.com" || host === "dai.ly";
 }
 
+function isVimeo(value: string) {
+  const host = getHost(value);
+
+  return (
+    host === "vimeo.com" ||
+    host === "player.vimeo.com"
+  );
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -144,8 +153,14 @@ export async function POST(request: Request) {
     // while the yt-dlp fallback requires unavailable browser
     // impersonation on the current Render runtime.
     if (
-      isDailymotion(url) &&
-      cobaltResult?.status === "tunnel"
+      (
+        isDailymotion(url) ||
+        isVimeo(url)
+      ) &&
+      (
+        cobaltResult?.status === "tunnel" ||
+        cobaltResult?.status === "error"
+      )
     ) {
       return Response.json(
         {
@@ -153,7 +168,9 @@ export async function POST(request: Request) {
           error: {
             code: "error.api.fetch.fail",
             message:
-              "Dailymotion downloads are temporarily unavailable while the media processor is being updated.",
+              isVimeo(url)
+                ? "Vimeo downloads are temporarily unavailable while the media processor is being updated."
+                : "Dailymotion downloads are temporarily unavailable while the media processor is being updated.",
           },
         },
         { status: 422 },
