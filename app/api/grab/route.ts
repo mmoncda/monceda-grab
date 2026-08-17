@@ -1,8 +1,57 @@
 const COBALT_API = "https://monceda-grab-api-us.onrender.com/";
 const FALLBACK_API = "https://monceda-grab-fallback.onrender.com/extract";
 
-function isImageFilename(filename: unknown) {
-  return /\.(jpe?g|png|webp|gif)$/i.test(String(filename || ""));
+function looksLikeImage(value: unknown) {
+  const text = String(value || "")
+    .split("?")[0]
+    .toLowerCase();
+
+  return /\.(jpe?g|png|webp|gif|avif)$/.test(text);
+}
+
+function cobaltReturnedImageOnly(result: any) {
+  if (looksLikeImage(result?.filename)) {
+    return true;
+  }
+
+  if (looksLikeImage(result?.url)) {
+    return true;
+  }
+
+  const picker = Array.isArray(result?.picker)
+    ? result.picker
+    : [];
+
+  if (picker.length === 0) {
+    return false;
+  }
+
+  const hasVideo = picker.some((item: any) => {
+    const type = String(
+      item?.type || item?.mediaType || "",
+    ).toLowerCase();
+
+    return (
+      type.includes("video") ||
+      /\.(mp4|mov|m4v|webm)$/i.test(
+        String(item?.url || "").split("?")[0],
+      )
+    );
+  });
+
+  const hasImage = picker.some((item: any) => {
+    const type = String(
+      item?.type || item?.mediaType || "",
+    ).toLowerCase();
+
+    return (
+      type.includes("image") ||
+      looksLikeImage(item?.url) ||
+      looksLikeImage(item?.filename)
+    );
+  });
+
+  return hasImage && !hasVideo;
 }
 
 function isInstagramReel(value: string) {
@@ -61,7 +110,7 @@ export async function POST(request: Request) {
     //    Only use fallback for that specific failure.
     const shouldUseFallback =
       isInstagramReel(url) &&
-      isImageFilename(cobaltResult.filename);
+      cobaltReturnedImageOnly(cobaltResult);
 
     if (!shouldUseFallback) {
       return Response.json(cobaltResult);
