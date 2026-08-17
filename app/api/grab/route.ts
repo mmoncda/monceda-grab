@@ -130,6 +130,20 @@ export async function POST(request: Request) {
     const cobaltResult = await cobaltResponse.json();
 
     if (!cobaltResponse.ok || cobaltResult.status === "error") {
+      if (isVimeo(url)) {
+        return Response.json(
+          {
+            status: "error",
+            error: {
+              code: "error.api.vimeo.unavailable",
+              message:
+                "Vimeo downloads are temporarily unavailable because Vimeo currently requires authentication for media extraction.",
+            },
+          },
+          { status: 422 },
+        );
+      }
+
       return Response.json(cobaltResult, {
         status: cobaltResponse.status,
       });

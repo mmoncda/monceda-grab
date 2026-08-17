@@ -113,9 +113,11 @@ export default function Home() {
         const friendlyMessage =
           apiMessage ||
           (
-            code === "error.api.fetch.fail"
-              ? "The media processor could not retrieve this post. Make sure the link is public and still available, then try again."
-              : code === "error.api.fetch.empty"
+            code === "error.api.vimeo.unavailable"
+              ? "Vimeo downloads are temporarily unavailable because Vimeo currently requires authentication for media extraction."
+              : code === "error.api.fetch.fail"
+                ? "The media processor could not retrieve this post. Make sure the link is public and still available, then try again."
+                : code === "error.api.fetch.empty"
                 ? "No downloadable video or image was found at this link."
                 : code === "error.api.link.invalid"
                   ? "This link is invalid or unsupported."
