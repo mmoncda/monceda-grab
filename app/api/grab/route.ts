@@ -112,7 +112,58 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Primary processor: Cobalt
+    /*
+     * Instagram Reels:
+     * Use our yt-dlp fallback directly.
+     *
+     * Cobalt currently fails on some public Instagram Reels,
+     * while the fallback successfully resolves the actual video.
+     */
+    if (isInstagramReel(url)) {
+      const fallbackResponse = await fetch(FALLBACK_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ url }),
+      });
+
+      let fallbackResult: any = null;
+
+      try {
+        fallbackResult = await fallbackResponse.json();
+      } catch {
+        fallbackResult = null;
+      }
+
+      if (
+        fallbackResponse.ok &&
+        fallbackResult?.status === "ok" &&
+        fallbackResult?.url
+      ) {
+        return Response.json({
+          ...fallbackResult,
+          fallback: true,
+        });
+      }
+
+      return Response.json(
+        {
+          status: "error",
+          error: {
+            code: "error.api.fetch.fail",
+            message:
+              "Instagram could not provide a downloadable video for this Reel.",
+          },
+        },
+        { status: 422 },
+      );
+    }
+
+    /*
+     * Other supported platforms continue using Cobalt.
+     */
     const cobaltResponse = await fetch(COBALT_API, {
       method: "POST",
       headers: {
@@ -127,9 +178,15 @@ export async function POST(request: Request) {
       }),
     });
 
-    const cobaltResult = await cobaltResponse.json();
+    let cobaltResult: any = null;
 
-    if (!cobaltResponse.ok || cobaltResult.status === "error") {
+    try {
+      cobaltResult = await cobaltResponse.json();
+    } catch {
+      cobaltResult = null;
+    }
+
+    if (!cobaltResponse.ok || cobaltResult?.status === "error") {
       if (isVimeo(url)) {
         return Response.json(
           {
@@ -144,91 +201,80 @@ export async function POST(request: Request) {
         );
       }
 
-      return Response.json(cobaltResult, {
-        status: cobaltResponse.status,
-      });
+      return Response.json(
+        cobaltResult || {
+          status: "error",
+          error: { code: "error.api.fetch.fail" },
+        },
+        { status: cobaltResponse.status || 502 },
+      );
     }
 
-    // 2. Use yt-dlp fallback for:
-    //    - Instagram Reels when Cobalt returns only an image
-    //    - Bluesky tunnel responses because the current Cobalt
-    //      tunnel can return a zero-byte download.
-    const shouldUseFallback =
-      (
-        isInstagramReel(url) &&
-        cobaltReturnedImageOnly(cobaltResult)
-      ) ||
-      (
-        isBluesky(url) &&
-        cobaltResult?.status === "tunnel"
-      );
-
-    // Dailymotion currently returns a broken Cobalt tunnel,
-    // while the yt-dlp fallback requires unavailable browser
-    // impersonation on the current Render runtime.
+    /*
+     * Keep the existing Bluesky fallback behavior.
+     */
     if (
-      (
-        isDailymotion(url) ||
-        isVimeo(url)
-      ) &&
-      (
-        cobaltResult?.status === "tunnel" ||
-        cobaltResult?.status === "error"
-      )
+      isBluesky(url) &&
+      cobaltResult?.status === "tunnel"
     ) {
+      const fallbackResponse = await fetch(FALLBACK_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ url }),
+      });
+
+      let fallbackResult: any = null;
+
+      try {
+        fallbackResult = await fallbackResponse.json();
+      } catch {
+        fallbackResult = null;
+      }
+
+      if (
+        fallbackResponse.ok &&
+        fallbackResult?.status === "ok" &&
+        fallbackResult?.url
+      ) {
+        return Response.json({
+          ...fallbackResult,
+          fallback: true,
+        });
+      }
+
       return Response.json(
         {
           status: "error",
           error: {
             code: "error.api.fetch.fail",
-            message:
-              isVimeo(url)
-                ? "Vimeo downloads are temporarily unavailable while the media processor is being updated."
-                : "Dailymotion downloads are temporarily unavailable while the media processor is being updated.",
           },
         },
         { status: 422 },
       );
     }
 
-    if (!shouldUseFallback) {
-      return Response.json(cobaltResult);
-    }
-
-    // 3. yt-dlp video fallback
-    const fallbackResponse = await fetch(FALLBACK_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ url }),
-    });
-
-    const fallbackResult = await fallbackResponse.json();
-
     if (
-      fallbackResponse.ok &&
-      fallbackResult.status === "ok" &&
-      fallbackResult.url
+      (isDailymotion(url) || isVimeo(url)) &&
+      cobaltResult?.status === "tunnel"
     ) {
-      return Response.json({
-        ...fallbackResult,
-        fallback: true,
-      });
+      return Response.json(
+        {
+          status: "error",
+          error: {
+            code: "error.api.fetch.fail",
+            message: isVimeo(url)
+              ? "Vimeo downloads are temporarily unavailable while the media processor is being updated."
+              : "Dailymotion downloads are temporarily unavailable while the media processor is being updated.",
+          },
+        },
+        { status: 422 },
+      );
     }
 
-    return Response.json(
-      {
-        status: "error",
-        error: {
-          code: "error.api.fetch.fail",
-          message:
-            "The primary processor could not provide a usable video and the fallback processor also failed.",
-        },
-      },
-      { status: 422 },
-    );
+    return Response.json(cobaltResult);
   } catch (error) {
     console.error("Grab proxy error:", error);
 

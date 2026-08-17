@@ -8,7 +8,8 @@ function isAllowedMediaUrl(value: string) {
       (
         host === "sc-cdn.net" ||
         host.endsWith(".sc-cdn.net") ||
-        host === "video.twimg.com"
+        host === "video.twimg.com" ||
+        host.endsWith(".fbcdn.net")
       )
     );
   } catch {
@@ -61,13 +62,35 @@ export async function GET(request: Request) {
       );
     }
 
-    const upstream = await fetch(mediaUrl, {
-      headers: {
-        Accept: "video/*,*/*;q=0.8",
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-      },
-    });
+    const mediaHost = new URL(mediaUrl)
+      .hostname
+      .toLowerCase();
+
+    const isInstagramMedia =
+      mediaHost === "fbcdn.net" ||
+      mediaHost.endsWith(".fbcdn.net");
+
+    const upstream = isInstagramMedia
+      ? await fetch(
+          "https://monceda-grab-fallback.onrender.com/instagram/normalize",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "video/mp4",
+            },
+            body: JSON.stringify({
+              url: mediaUrl,
+            }),
+          },
+        )
+      : await fetch(mediaUrl, {
+          headers: {
+            Accept: "video/*,*/*;q=0.8",
+            "User-Agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+          },
+        });
 
     if (!upstream.ok || !upstream.body) {
       return Response.json(

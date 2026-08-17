@@ -170,7 +170,8 @@ export default function Home() {
 
       const shouldProxyDownload =
         detected?.name === "Snapchat" ||
-        detected?.name === "X / Twitter";
+        detected?.name === "X / Twitter" ||
+        detected?.name === "Instagram";
 
       const resolvedDownloadUrl =
         shouldProxyDownload
