@@ -82,7 +82,7 @@ export default function Home() {
     setDownloadUrl("");
 
     if (!hasRights) {
-      setMessage("Kailangan mong kumpirmahin na may karapatan o pahintulot kang i-download ang content.");
+      setMessage("Please confirm that you have the right or permission to download this content.");
       return;
     }
 
@@ -105,14 +105,23 @@ export default function Home() {
 
       if (!response.ok || result.status === "error") {
         const code = result.error?.code;
+        const apiMessage =
+          typeof result.error?.message === "string"
+            ? result.error.message.trim()
+            : "";
+
         const friendlyMessage =
-          code === "error.api.fetch.fail"
-            ? "Hindi makuha ng processor ang post. Siguraduhing public at available ang link, pagkatapos ay subukan ulit."
-            : code === "error.api.fetch.empty"
-              ? "Walang downloadable video o image na nakita sa link."
-              : code === "error.api.link.invalid"
-                ? "Hindi valid o hindi supported ang link na ito."
-                : "Hindi ma-process ang media ngayon. Subukan ulit mamaya.";
+          apiMessage ||
+          (
+            code === "error.api.fetch.fail"
+              ? "The media processor could not retrieve this post. Make sure the link is public and still available, then try again."
+              : code === "error.api.fetch.empty"
+                ? "No downloadable video or image was found at this link."
+                : code === "error.api.link.invalid"
+                  ? "This link is invalid or unsupported."
+                  : "This media could not be processed right now. Please try again later."
+          );
+
         throw new Error(friendlyMessage);
       }
 
@@ -156,7 +165,7 @@ export default function Home() {
       setMessage(
         error instanceof Error
           ? error.message
-          : "Hindi ma-process ang link ngayon. Subukan ulit.",
+          : "This link could not be processed right now. Please try again.",
       );
     } finally {
       setIsChecking(false);
