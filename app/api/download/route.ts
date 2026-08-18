@@ -9,7 +9,9 @@ function isAllowedMediaUrl(value: string) {
         host === "sc-cdn.net" ||
         host.endsWith(".sc-cdn.net") ||
         host === "video.twimg.com" ||
-        host.endsWith(".fbcdn.net")
+        host.endsWith(".fbcdn.net") ||
+        host === "cdninstagram.com" ||
+        host.endsWith(".cdninstagram.com")
       )
     );
   } catch {
@@ -87,11 +89,13 @@ export async function GET(request: Request) {
 
     const isInstagramMedia =
       mediaHost === "fbcdn.net" ||
-      mediaHost.endsWith(".fbcdn.net");
+      mediaHost.endsWith(".fbcdn.net") ||
+      mediaHost === "cdninstagram.com" ||
+      mediaHost.endsWith(".cdninstagram.com");
 
     const upstream = isInstagramMedia
       ? await fetch(
-          "https://monceda-grab-fallback.onrender.com/instagram/normalize",
+          "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/normalize",
           {
             method: "POST",
             headers: {
