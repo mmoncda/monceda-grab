@@ -1,5 +1,6 @@
 const COBALT_API = "https://monceda-grab-api-us.onrender.com/";
-const FALLBACK_API = "https://monceda-grab-fallback.onrender.com/extract";
+const FALLBACK_API =
+  "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/extract";
 
 function looksLikeImage(value: unknown) {
   const text = String(value || "")
@@ -72,7 +73,21 @@ function isInstagramMediaPost(value: string) {
 
     return (
       host === "instagram.com" &&
-      /^\/(?:reel|p|tv)\//i.test(parsed.pathname)
+      /^\/(?:reel|p|tv|stories)\//i.test(parsed.pathname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isInstagramStory(value: string) {
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+
+    return (
+      host === "instagram.com" &&
+      /^\/stories\//i.test(parsed.pathname)
     );
   } catch {
     return false;
@@ -145,6 +160,8 @@ export async function POST(request: Request) {
         return Response.json({
           ...fallbackResult,
           fallback: true,
+          instagram_story: isInstagramStory(url),
+          source_url: url,
         });
       }
 

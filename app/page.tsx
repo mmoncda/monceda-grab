@@ -47,6 +47,7 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
   const [downloadFilename, setDownloadFilename] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
   const [isChecking, setIsChecking] = useState(false);
   const [hasRights, setHasRights] = useState(false);
   const detected = useMemo(() => detectPlatform(url), [url]);
@@ -56,6 +57,7 @@ export default function Home() {
     setMessage("");
     setDownloadUrl("");
     setDownloadFilename("");
+    setPreviewUrl("");
 
     if (!hasRights) {
       setMessage("Please confirm that you have the right or permission to download this content.");
@@ -122,6 +124,10 @@ export default function Home() {
         throw new Error("No downloadable media was returned");
       }
 
+      const isInstagramStory =
+        detected?.name === "Instagram" &&
+        /instagram\.com\/stories\//i.test(url);
+
       const isInstagramReel =
         detected?.name === "Instagram" &&
         /instagram\.com\/reel\//i.test(url);
@@ -179,19 +185,28 @@ export default function Home() {
         detected?.name === "Instagram";
 
       const resolvedDownloadUrl =
-        shouldProxyDownload
-          ? `/api/download?url=${encodeURIComponent(
-              String(mediaUrl).replace(/&amp;/g, "&"),
-            )}&filename=${encodeURIComponent(
-              safeFilename,
-            )}${
-              detected?.name === "Instagram" && audioUrl
-                ? `&audio_url=${encodeURIComponent(
-                    audioUrl.replace(/&amp;/g, "&"),
-                  )}`
-                : ""
-            }`
-          : mediaUrl;
+        isInstagramStory
+          ? `/api/instagram-story-download?url=${encodeURIComponent(url)}`
+          : shouldProxyDownload
+            ? `/api/download?url=${encodeURIComponent(
+                String(mediaUrl).replace(/&amp;/g, "&"),
+              )}&filename=${encodeURIComponent(
+                safeFilename,
+              )}${
+                detected?.name === "Instagram" && audioUrl
+                  ? `&audio_url=${encodeURIComponent(
+                      audioUrl.replace(/&amp;/g, "&"),
+                    )}`
+                  : ""
+              }`
+            : mediaUrl;
+
+      const cleanPreviewUrl =
+        String(mediaUrl).replace(/&amp;/g, "&");
+
+      setPreviewUrl(
+        `/api/preview?url=${encodeURIComponent(cleanPreviewUrl)}`,
+      );
 
       setDownloadUrl(resolvedDownloadUrl);
       setMessage(`${detected?.name} media is ready.`);
@@ -278,6 +293,19 @@ export default function Home() {
                   Download media ↓
                 </a></>
               )}
+            </div>
+          )}
+
+          {downloadUrl && previewUrl && (
+            <div className="video-preview">
+              <video
+                src={previewUrl}
+                controls
+                playsInline
+                preload="metadata"
+              >
+                Your browser does not support video playback.
+              </video>
             </div>
           )}
         </form>
