@@ -44,9 +44,16 @@ export const metadata: Metadata = {
     description: "Save public media you own or have permission to download—simple, fast, and private.",
     images: ["/og.png"],
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Monceda Grab",
+    statusBarStyle: "default",
+  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
+    apple: "/apple-touch-icon.png",
   },
   other: {
     "google-adsense-account": adsenseClient,
