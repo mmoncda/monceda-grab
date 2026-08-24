@@ -2,6 +2,12 @@ const COBALT_API = "https://monceda-grab-api-us.onrender.com/";
 const FALLBACK_API =
   "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/extract";
 
+const INSTAGRAM_STORY_EXTRACT_API =
+  "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/story/extract";
+
+const FACEBOOK_STORY_EXTRACT_API =
+  "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/facebook/story/extract";
+
 function looksLikeImage(value: unknown) {
   const text = String(value || "")
     .split("?")[0]
@@ -65,6 +71,25 @@ function getHost(value: string) {
     return "";
   }
 }
+
+function isFacebookStory(value: string) {
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname
+      .replace(/^www\./, "")
+      .toLowerCase();
+
+    return (
+      parsed.protocol === "https:" &&
+      (host === "facebook.com" ||
+        host === "m.facebook.com") &&
+      /^\/stories\//i.test(parsed.pathname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 
 function isInstagramMediaPost(value: string) {
   try {
@@ -134,8 +159,58 @@ export async function POST(request: Request) {
      * Cobalt currently fails on some public Instagram posts,
      * while the fallback successfully resolves the actual video.
      */
+    if (isFacebookStory(url)) {
+      const storyResponse = await fetch(
+        FACEBOOK_STORY_EXTRACT_API,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ url }),
+        },
+      );
+
+      let storyResult: any = null;
+
+      try {
+        storyResult = await storyResponse.json();
+      } catch {
+        storyResult = null;
+      }
+
+      if (
+        !storyResponse.ok ||
+        storyResult?.status === "error"
+      ) {
+        return Response.json(
+          storyResult || {
+            status: "error",
+            error: {
+              code: "error.api.fetch.fail",
+            },
+          },
+          {
+            status:
+              storyResponse.status || 502,
+          },
+        );
+      }
+
+      return Response.json({
+        ...storyResult,
+        facebook_story: true,
+      });
+    }
+
     if (isInstagramMediaPost(url)) {
-      const fallbackResponse = await fetch(FALLBACK_API, {
+      const instagramApi =
+        isInstagramStory(url)
+          ? INSTAGRAM_STORY_EXTRACT_API
+          : FALLBACK_API;
+
+      const fallbackResponse = await fetch(instagramApi, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

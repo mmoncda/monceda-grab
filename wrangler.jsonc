@@ -1,0 +1,7 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "monceda-grab",
+  "account_id": "468826bcf6455dec7b094ad4bb34bcbc",
+  "main": "vinext/server/fetch-handler",
+  "compatibility_date": "2026-08-12"
+}

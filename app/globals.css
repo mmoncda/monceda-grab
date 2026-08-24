@@ -149,6 +149,34 @@ h1 em { font-style:normal; color:#60a5fa; }
 }
 @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
 
+/* Video preview only */
+.video-preview {
+  width: min(420px, 100%);
+  margin: 18px auto 0;
+  overflow: hidden;
+  border: 1px solid rgba(96,165,250,.22);
+  border-radius: 14px;
+  background: #000;
+}
+
+.video-preview video {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  background: #000;
+  object-fit: contain;
+}
+
+@media (max-width:760px) {
+  .video-preview {
+    width: min(360px,100%);
+  }
+
+  .video-preview video {
+    max-height: 280px;
+  }
+}
+
 /* =========================================================
    NORTON SAFE WEB TRUST CARD
    ========================================================= */
@@ -199,6 +227,7 @@ h1 em { font-style:normal; color:#60a5fa; }
     12% 14%
   );
   background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(74, 222, 128, 0.32);
   color: #4ade80;
   font-size: 17px;
   font-weight: 900;
@@ -241,5 +270,166 @@ h1 em { font-style:normal; color:#60a5fa; }
   .norton-trust-card {
     width: 100%;
     max-width: 280px;
+  }
+}
+
+/* ===== MONCEDA GRAB — MULTI STORY GALLERY ===== */
+
+.story-results {
+  width: 100%;
+  margin-top: 22px;
+}
+
+.story-results-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.story-results-kicker {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  opacity: .65;
+}
+
+.story-results-head h2 {
+  margin: 0;
+  font-size: clamp(20px, 3vw, 28px);
+  line-height: 1.1;
+}
+
+.story-results-note {
+  max-width: 280px;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: .68;
+  text-align: right;
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.story-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 16px;
+  background: rgba(255,255,255,.035);
+}
+
+.story-media {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  background: #050505;
+}
+
+.story-media video,
+.story-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #050505;
+}
+
+.story-number {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.72);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  backdrop-filter: blur(8px);
+}
+
+.story-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+}
+
+.story-card-footer > div {
+  min-width: 0;
+}
+
+.story-card-footer strong,
+.story-card-footer small {
+  display: block;
+}
+
+.story-card-footer strong {
+  font-size: 13px;
+}
+
+.story-card-footer small {
+  margin-top: 3px;
+  font-size: 10px;
+  letter-spacing: .08em;
+  opacity: .58;
+}
+
+.story-download {
+  flex: 0 0 auto;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: #fff;
+  color: #080808;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.story-download:hover {
+  opacity: .88;
+}
+
+@media (max-width: 760px) {
+  .story-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .story-results-head {
+    align-items: start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .story-results-note {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+@media (max-width: 430px) {
+  .story-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .story-card {
+    max-width: 360px;
+    width: 100%;
+    margin-inline: auto;
   }
 }

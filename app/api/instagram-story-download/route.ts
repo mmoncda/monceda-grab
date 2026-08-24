@@ -1,5 +1,5 @@
 const STORY_API =
-  "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/download";
+  "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/story/download";
 
 function isInstagramStory(value: string) {
   try {

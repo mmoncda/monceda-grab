@@ -10,6 +10,17 @@ type Platform = {
   color: string;
 };
 
+type StoryItem = {
+  id: string;
+  index: number;
+  url: string;
+  audio_url?: string;
+  ext?: string;
+  filename?: string;
+  title?: string;
+  duration?: number | null;
+};
+
 const platforms: Platform[] = [
   { name: "Facebook", short: "f", color: "#1877f2" },
   { name: "Instagram", short: "◎", color: "#d946ef" },
@@ -48,6 +59,7 @@ export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState("");
   const [downloadFilename, setDownloadFilename] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [storyItems, setStoryItems] = useState<StoryItem[]>([]);
   const [isChecking, setIsChecking] = useState(false);
   const [hasRights, setHasRights] = useState(false);
   const detected = useMemo(() => detectPlatform(url), [url]);
@@ -58,6 +70,7 @@ export default function Home() {
     setDownloadUrl("");
     setDownloadFilename("");
     setPreviewUrl("");
+    setStoryItems([]);
 
     if (!hasRights) {
       setMessage("Please confirm that you have the right or permission to download this content.");
@@ -103,14 +116,40 @@ export default function Home() {
         throw new Error(friendlyMessage);
       }
 
-      const mediaUrl = result.url || result.picker?.[0]?.url;
+      const isInstagramStory =
+        detected?.name === "Instagram" &&
+        /instagram\.com\/stories\//i.test(url);
+
+      const isFacebookStory =
+        detected?.name === "Facebook" &&
+        /facebook\.com\/stories\//i.test(url);
+
+      const isStory =
+        isInstagramStory || isFacebookStory;
+
+      const firstStoryItem =
+        isStory &&
+        Array.isArray(result.items) &&
+        result.items.length > 0
+          ? result.items[0]
+          : null;
+
+      const mediaUrl =
+        result.url ||
+        result.picker?.[0]?.url ||
+        firstStoryItem?.url;
+
       const audioUrl =
         typeof result.audio_url === "string"
           ? result.audio_url
           : "";
 
       const originalFilename =
-        String(result.filename || "").trim();
+        String(
+          result.filename ||
+          firstStoryItem?.filename ||
+          "",
+        ).trim();
 
       const returnedFilename =
         originalFilename.toLowerCase();
@@ -121,12 +160,31 @@ export default function Home() {
           .toLowerCase();
 
       if (!mediaUrl) {
-        throw new Error("No downloadable media was returned");
+        throw new Error(
+          "No downloadable media was returned"
+        );
       }
 
-      const isInstagramStory =
-        detected?.name === "Instagram" &&
-        /instagram\.com\/stories\//i.test(url);
+      if (isStory && Array.isArray(result.items)) {
+        const validStoryItems = result.items.filter(
+          (item: unknown): item is StoryItem => {
+            if (!item || typeof item !== "object") {
+              return false;
+            }
+
+            const candidate = item as Partial<StoryItem>;
+
+            return (
+              typeof candidate.id === "string" &&
+              typeof candidate.index === "number" &&
+              typeof candidate.url === "string" &&
+              candidate.url.startsWith("https://")
+            );
+          },
+        );
+
+        setStoryItems(validStoryItems);
+      }
 
       const isInstagramReel =
         detected?.name === "Instagram" &&
@@ -182,7 +240,8 @@ export default function Home() {
       const shouldProxyDownload =
         detected?.name === "Snapchat" ||
         detected?.name === "X / Twitter" ||
-        detected?.name === "Instagram";
+        detected?.name === "Instagram" ||
+        isFacebookStory;
 
       const resolvedDownloadUrl =
         isInstagramStory
@@ -209,7 +268,17 @@ export default function Home() {
       );
 
       setDownloadUrl(resolvedDownloadUrl);
-      setMessage(`${detected?.name} media is ready.`);
+
+      const detectedStoryCount =
+        isStory && Array.isArray(result.items)
+          ? result.items.length
+          : 0;
+
+      setMessage(
+        detectedStoryCount > 1
+          ? `${detectedStoryCount} ${detected?.name} Story items are ready.`
+          : `${detected?.name} media is ready.`,
+      );
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -238,7 +307,7 @@ export default function Home() {
           <Link href="/about">About</Link>
           <Link href="/privacy">Privacy</Link>
         </div>
-        <span className="beta">BETA</span>
+        <span className="beta">PUBLIC TOOL</span>
       </nav>
 
       <section className="hero shell" id="top">
@@ -281,9 +350,13 @@ export default function Home() {
             <span>I own this content, it is public domain, or I have explicit permission or another lawful right to download it. I agree to the <a href="#terms">Terms of Use</a>.</span>
           </label>
           {message && (
-            <div className={downloadUrl ? "status success" : "status"} role="status">
+            <div
+              className={downloadUrl ? "status success" : "status"}
+              role="status"
+            >
               {message}
-              {downloadUrl && (
+
+              {downloadUrl && storyItems.length <= 1 && (
                 <> <a
                   className="download-link"
                   href={downloadUrl}
@@ -296,18 +369,141 @@ export default function Home() {
             </div>
           )}
 
-          {downloadUrl && previewUrl && (
-            <div className="video-preview">
-              <video
-                src={previewUrl}
-                controls
-                playsInline
-                preload="metadata"
-              >
-                Your browser does not support video playback.
-              </video>
-            </div>
+          {storyItems.length > 1 && (
+            <section
+              className="story-results"
+              aria-label={`${detected?.name || "Social"} Story items`}
+            >
+              <div className="story-results-head">
+                <div>
+                  <span className="story-results-kicker">
+                    {detected?.name?.toUpperCase()} STORIES
+                  </span>
+                  <h2>
+                    {storyItems.length} items found
+                  </h2>
+                </div>
+
+                <span className="story-results-note">
+                  Choose a Story to preview or save.
+                </span>
+              </div>
+
+              <div className="story-grid">
+                {storyItems.map((item) => {
+                  const itemExt =
+                    String(item.ext || "mp4").toLowerCase();
+
+                  const isImage =
+                    /^(?:jpe?g|png|webp|gif|avif)$/.test(
+                      itemExt,
+                    );
+
+                  const cleanItemUrl =
+                    String(item.url).replace(/&amp;/g, "&");
+
+                  const itemPreviewUrl =
+                    `/api/preview?url=${encodeURIComponent(
+                      cleanItemUrl,
+                    )}`;
+
+                  const itemFilename =
+                    item.filename ||
+                    `${isFacebookStory ? "facebook" : "instagram"}_story_${item.id}.${itemExt}`;
+
+                  const itemDownloadUrl =
+                    `/api/download?url=${encodeURIComponent(
+                      cleanItemUrl,
+                    )}&filename=${encodeURIComponent(
+                      itemFilename,
+                    )}${
+                      item.audio_url
+                        ? `&audio_url=${encodeURIComponent(
+                            String(item.audio_url).replace(
+                              /&amp;/g,
+                              "&",
+                            ),
+                          )}`
+                        : ""
+                    }`;
+
+                  return (
+                    <article
+                      className="story-card"
+                      key={`${item.id}-${item.index}`}
+                    >
+                      <div className="story-media">
+                        {isImage ? (
+                          <img
+                            src={itemPreviewUrl}
+                            alt={`${detected?.name || "Social"} Story ${item.index}`}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <video
+                            src={itemPreviewUrl}
+                            controls
+                            playsInline
+                            preload="metadata"
+                          >
+                            Your browser does not support
+                            video playback.
+                          </video>
+                        )}
+
+                        <span className="story-number">
+                          {String(item.index).padStart(2, "0")}
+                        </span>
+                      </div>
+
+                      <div className="story-card-footer">
+                        <div>
+                          <strong>
+                            Story {item.index}
+                          </strong>
+                          <small>
+                            {isImage
+                              ? itemExt.toUpperCase()
+                              : "VIDEO"}
+                            {typeof item.duration === "number" &&
+                            item.duration > 0
+                              ? ` · ${Math.round(
+                                  item.duration,
+                                )}s`
+                              : ""}
+                          </small>
+                        </div>
+
+                        <a
+                          className="story-download"
+                          href={itemDownloadUrl}
+                          download={itemFilename}
+                          rel="nofollow"
+                        >
+                          Download ↓
+                        </a>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
           )}
+
+          {storyItems.length <= 1 &&
+            downloadUrl &&
+            previewUrl && (
+              <div className="video-preview">
+                <video
+                  src={previewUrl}
+                  controls
+                  playsInline
+                  preload="metadata"
+                >
+                  Your browser does not support video playback.
+                </video>
+              </div>
+            )}
         </form>
 
         <div className="platform-row" id="platforms" aria-label="Supported platforms">

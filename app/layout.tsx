@@ -23,7 +23,6 @@ export const metadata: Metadata = {
   creator: "Monceda Labs",
   publisher: "Monceda Labs",
   keywords: ["Monceda Grab", "public media downloader", "social media downloader", "Monceda Labs"],
-  alternates: { canonical: "/" },
   robots: {
     index: true,
     follow: true,

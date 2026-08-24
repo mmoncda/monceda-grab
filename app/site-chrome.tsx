@@ -13,7 +13,7 @@ export function SiteHeader() {
         <Link href="/about">About</Link>
         <Link href="/privacy">Privacy</Link>
       </div>
-      <span className="beta">BETA</span>
+      <span className="beta">PUBLIC TOOL</span>
     </nav>
   );
 }

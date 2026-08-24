@@ -44,6 +44,9 @@ export async function GET(request: Request) {
     let audioUrl =
       requestUrl.searchParams.get("audio_url") || "";
 
+    const fastRemux =
+      requestUrl.searchParams.get("fast_remux") === "1";
+
     const filename = sanitizeFilename(
       requestUrl.searchParams.get("filename") ||
         "snapchat-media.mp4",
@@ -88,10 +91,12 @@ export async function GET(request: Request) {
       .toLowerCase();
 
     const isInstagramMedia =
-      mediaHost === "fbcdn.net" ||
-      mediaHost.endsWith(".fbcdn.net") ||
       mediaHost === "cdninstagram.com" ||
       mediaHost.endsWith(".cdninstagram.com");
+
+    const isFacebookMedia =
+      mediaHost === "fbcdn.net" ||
+      mediaHost.endsWith(".fbcdn.net");
 
     const upstream = isInstagramMedia
       ? await fetch(
@@ -107,12 +112,17 @@ export async function GET(request: Request) {
               ...(audioUrl
                 ? { audio_url: audioUrl }
                 : {}),
+              ...(fastRemux
+                ? { fast_remux: true }
+                : {}),
             }),
           },
         )
       : await fetch(mediaUrl, {
           headers: {
-            Accept: "video/*,*/*;q=0.8",
+            Accept: isFacebookMedia
+              ? "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+              : "video/*,*/*;q=0.8",
             "User-Agent":
               "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
           },
