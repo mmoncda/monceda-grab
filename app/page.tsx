@@ -19,6 +19,7 @@ type StoryItem = {
   filename?: string;
   title?: string;
   duration?: number | null;
+  thumbnail?: string;
 };
 
 const platforms: Platform[] = [
@@ -407,6 +408,14 @@ export default function Home() {
                       cleanItemUrl,
                     )}`;
 
+                  const itemPosterUrl =
+                    typeof item.thumbnail === "string" &&
+                    item.thumbnail.startsWith("https://")
+                      ? `/api/preview?url=${encodeURIComponent(
+                          item.thumbnail.replace(/&amp;/g, "&"),
+                        )}`
+                      : undefined;
+
                   const itemFilename =
                     item.filename ||
                     `${isFacebookStory ? "facebook" : "instagram"}_story_${item.id}.${itemExt}`;
@@ -442,9 +451,11 @@ export default function Home() {
                         ) : (
                           <video
                             src={itemPreviewUrl}
+                            poster={itemPosterUrl}
                             controls
                             playsInline
-                            preload="metadata"
+                            muted
+                            preload="auto"
                           >
                             Your browser does not support
                             video playback.
