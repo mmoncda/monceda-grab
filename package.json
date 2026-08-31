@@ -19,6 +19,7 @@
     "start:vinext": "vinext start"
   },
   "dependencies": {
+    "@cloudflare/containers": "^0.3.7",
     "drizzle-orm": "0.45.2",
     "next": "16.2.6",
     "react": "19.2.6",

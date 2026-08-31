@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "monceda-grab-processor",
+  "account_id": "468826bcf6455dec7b094ad4bb34bcbc",
+  "main": "cloudflare/processor-worker.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "containers": [
+    {
+      "name": "monceda-grab-processor",
+      "class_name": "MediaProcessor",
+      "image": "./processor/Dockerfile",
+      "instance_type": "basic",
+      "max_instances": 2
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MEDIA_PROCESSOR",
+        "class_name": "MediaProcessor"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["MediaProcessor"]
+    }
+  ],
+  "secrets": {
+    "required": ["INSTAGRAM_COOKIES", "FACEBOOK_COOKIES"]
+  },
+  "observability": {
+    "enabled": true
+  }
+}
