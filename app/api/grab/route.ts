@@ -8,57 +8,23 @@ const INSTAGRAM_STORY_EXTRACT_API =
 const FACEBOOK_STORY_EXTRACT_API =
   "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/facebook/story/extract";
 
+type ApiResult = {
+  status?: string;
+  url?: string;
+  filename?: string;
+  audio_url?: string;
+  picker?: unknown[];
+  items?: unknown[];
+  error?: unknown;
+  [key: string]: unknown;
+};
+
 function looksLikeImage(value: unknown) {
   const text = String(value || "")
     .split("?")[0]
     .toLowerCase();
 
   return /\.(jpe?g|png|webp|gif|avif)$/.test(text);
-}
-
-function cobaltReturnedImageOnly(result: any) {
-  if (looksLikeImage(result?.filename)) {
-    return true;
-  }
-
-  if (looksLikeImage(result?.url)) {
-    return true;
-  }
-
-  const picker = Array.isArray(result?.picker)
-    ? result.picker
-    : [];
-
-  if (picker.length === 0) {
-    return false;
-  }
-
-  const hasVideo = picker.some((item: any) => {
-    const type = String(
-      item?.type || item?.mediaType || "",
-    ).toLowerCase();
-
-    return (
-      type.includes("video") ||
-      /\.(mp4|mov|m4v|webm)$/i.test(
-        String(item?.url || "").split("?")[0],
-      )
-    );
-  });
-
-  const hasImage = picker.some((item: any) => {
-    const type = String(
-      item?.type || item?.mediaType || "",
-    ).toLowerCase();
-
-    return (
-      type.includes("image") ||
-      looksLikeImage(item?.url) ||
-      looksLikeImage(item?.filename)
-    );
-  });
-
-  return hasImage && !hasVideo;
 }
 
 function getHost(value: string) {
@@ -172,7 +138,7 @@ export async function POST(request: Request) {
         },
       );
 
-      let storyResult: any = null;
+      let storyResult: ApiResult | null = null;
 
       try {
         storyResult = await storyResponse.json();
@@ -219,7 +185,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({ url }),
       });
 
-      let fallbackResult: any = null;
+      let fallbackResult: ApiResult | null = null;
 
       try {
         fallbackResult = await fallbackResponse.json();
@@ -270,7 +236,7 @@ export async function POST(request: Request) {
       }),
     });
 
-    let cobaltResult: any = null;
+    let cobaltResult: ApiResult | null = null;
 
     try {
       cobaltResult = await cobaltResponse.json();
@@ -318,7 +284,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({ url }),
       });
 
-      let fallbackResult: any = null;
+      let fallbackResult: ApiResult | null = null;
 
       try {
         fallbackResult = await fallbackResponse.json();
