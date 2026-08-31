@@ -22,6 +22,95 @@ type StoryItem = {
   thumbnail?: string;
 };
 
+function getMediaExtension(
+  value: unknown,
+) {
+  const cleanValue = String(value || "")
+    .split("?")[0]
+    .toLowerCase();
+
+  return cleanValue.match(
+    /\.(mp4|mov|m4v|webm|jpe?g|png|webp|gif|avif)$/,
+  )?.[1];
+}
+
+function normalizeMediaItems(result: unknown): StoryItem[] {
+  const response =
+    result && typeof result === "object"
+      ? result as { items?: unknown; picker?: unknown }
+      : {};
+
+  const candidates = [
+    ...(Array.isArray(response.items) ? response.items : []),
+    ...(Array.isArray(response.picker) ? response.picker : []),
+  ];
+
+  const seenUrls = new Set<string>();
+
+  return candidates.flatMap(
+    (item: unknown, position: number): StoryItem[] => {
+      const candidate =
+        item && typeof item === "object"
+          ? item as Record<string, unknown>
+          : { url: item };
+
+      const itemUrl = String(candidate.url || "")
+        .replace(/&amp;/g, "&");
+
+      if (
+        !itemUrl.startsWith("https://") ||
+        seenUrls.has(itemUrl)
+      ) {
+        return [];
+      }
+
+      seenUrls.add(itemUrl);
+
+      const filename =
+        typeof candidate.filename === "string"
+          ? candidate.filename
+          : undefined;
+
+      const mediaType = String(
+        candidate.type || candidate.mediaType || "",
+      ).toLowerCase();
+
+      const ext = String(
+        candidate.ext ||
+        getMediaExtension(filename) ||
+        getMediaExtension(itemUrl) ||
+        (mediaType.includes("image") ? "jpg" : "mp4"),
+      ).toLowerCase();
+
+      const numericIndex = Number(candidate.index);
+      const index =
+        Number.isFinite(numericIndex) && numericIndex > 0
+          ? numericIndex
+          : position + 1;
+
+      return [{
+        id: String(candidate.id || index),
+        index,
+        url: itemUrl,
+        ext,
+        ...(filename ? { filename } : {}),
+        ...(typeof candidate.audio_url === "string"
+          ? { audio_url: candidate.audio_url }
+          : {}),
+        ...(typeof candidate.title === "string"
+          ? { title: candidate.title }
+          : {}),
+        ...(typeof candidate.duration === "number"
+          ? { duration: candidate.duration }
+          : {}),
+        ...(typeof candidate.thumbnail === "string"
+          ? { thumbnail: candidate.thumbnail }
+          : {}),
+      }];
+    },
+  );
+}
+
 const platforms: Platform[] = [
   { name: "Facebook", short: "f", color: "#1877f2" },
   { name: "Instagram", short: "◎", color: "#d946ef" },
@@ -121,15 +210,18 @@ export default function Home() {
         detected?.name === "Instagram" &&
         /instagram\.com\/stories\//i.test(url);
 
+      const hasInstagramStoryId =
+        isInstagramStory &&
+        /instagram\.com\/stories\/[^/]+\/\d+\/?(?:\?|$)/i.test(
+          url,
+        );
+
       const isFacebookStory =
         detected?.name === "Facebook" &&
         /facebook\.com\/stories\//i.test(url);
 
-      const firstMediaItem =
-        Array.isArray(result.items) &&
-        result.items.length > 0
-          ? result.items[0]
-          : null;
+      const mediaItems = normalizeMediaItems(result);
+      const firstMediaItem = mediaItems[0] || null;
 
       const mediaUrl =
         result.url ||
@@ -162,26 +254,7 @@ export default function Home() {
         );
       }
 
-      if (Array.isArray(result.items)) {
-        const validStoryItems = result.items.filter(
-          (item: unknown): item is StoryItem => {
-            if (!item || typeof item !== "object") {
-              return false;
-            }
-
-            const candidate = item as Partial<StoryItem>;
-
-            return (
-              typeof candidate.id === "string" &&
-              typeof candidate.index === "number" &&
-              typeof candidate.url === "string" &&
-              candidate.url.startsWith("https://")
-            );
-          },
-        );
-
-        setStoryItems(validStoryItems);
-      }
+      setStoryItems(mediaItems);
 
       const isInstagramReel =
         detected?.name === "Instagram" &&
@@ -241,7 +314,7 @@ export default function Home() {
         isFacebookStory;
 
       const resolvedDownloadUrl =
-        isInstagramStory
+        hasInstagramStoryId
           ? `/api/instagram-story-download?url=${encodeURIComponent(url)}`
           : shouldProxyDownload
             ? `/api/download?url=${encodeURIComponent(
@@ -266,10 +339,7 @@ export default function Home() {
 
       setDownloadUrl(resolvedDownloadUrl);
 
-      const detectedItemCount =
-        Array.isArray(result.items)
-          ? result.items.length
-          : 0;
+      const detectedItemCount = mediaItems.length;
 
       setMessage(
         detectedItemCount > 1
