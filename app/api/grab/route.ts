@@ -19,26 +19,12 @@ type ApiResult = {
   [key: string]: unknown;
 };
 
-function hasMedia(result: ApiResult | null) {
-  if (typeof result?.url === "string" && result.url) {
-    return true;
-  }
+function looksLikeImage(value: unknown) {
+  const text = String(value || "")
+    .split("?")[0]
+    .toLowerCase();
 
-  return [result?.items, result?.picker].some(
-    (collection) =>
-      Array.isArray(collection) &&
-      collection.some((item) => {
-        if (typeof item === "string") {
-          return item.startsWith("https://");
-        }
-
-        return Boolean(
-          item &&
-          typeof item === "object" &&
-          typeof (item as { url?: unknown }).url === "string",
-        );
-      }),
-  );
+  return /\.(jpe?g|png|webp|gif|avif)$/.test(text);
 }
 
 function getHost(value: string) {
@@ -93,17 +79,6 @@ function isInstagramStory(value: string) {
     return (
       host === "instagram.com" &&
       /^\/stories\//i.test(parsed.pathname)
-    );
-  } catch {
-    return false;
-  }
-}
-
-function hasInstagramStoryId(value: string) {
-  try {
-    const parsed = new URL(value);
-    return /^\/stories\/[^/]+\/\d+\/?$/i.test(
-      parsed.pathname,
     );
   } catch {
     return false;
@@ -197,8 +172,7 @@ export async function POST(request: Request) {
 
     if (isInstagramMediaPost(url)) {
       const instagramApi =
-        isInstagramStory(url) &&
-        hasInstagramStoryId(url)
+        isInstagramStory(url)
           ? INSTAGRAM_STORY_EXTRACT_API
           : FALLBACK_API;
 
@@ -222,7 +196,7 @@ export async function POST(request: Request) {
       if (
         fallbackResponse.ok &&
         fallbackResult?.status === "ok" &&
-        hasMedia(fallbackResult)
+        fallbackResult?.url
       ) {
         return Response.json({
           ...fallbackResult,
@@ -232,28 +206,13 @@ export async function POST(request: Request) {
         });
       }
 
-      const instagramStory = isInstagramStory(url);
-      const upstreamError =
-        typeof fallbackResult?.error === "string"
-          ? fallbackResult.error
-          : "";
-
-      const errorMessage =
-        upstreamError === "invalid_instagram_story_url"
-          ? "Use the complete Instagram Story link, including the numeric Story ID after the username."
-          : instagramStory
-            ? "Instagram could not provide downloadable media for this Story. Make sure the Story is public, active, and opened using its complete share link."
-            : "Instagram could not provide downloadable media for this post or Reel.";
-
       return Response.json(
         {
           status: "error",
           error: {
-            code:
-              upstreamError === "invalid_instagram_story_url"
-                ? "error.api.link.invalid"
-                : "error.api.fetch.fail",
-            message: errorMessage,
+            code: "error.api.fetch.fail",
+            message:
+              "Instagram could not provide a downloadable video for this Reel.",
           },
         },
         { status: 422 },

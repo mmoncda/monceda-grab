@@ -98,38 +98,7 @@ export async function GET(request: Request) {
       mediaHost === "fbcdn.net" ||
       mediaHost.endsWith(".fbcdn.net");
 
-    /*
-     * Instagram photo posts already provide direct CDN image
-     * URLs. They must not be sent through the video normalizer,
-     * otherwise video-oriented output can be saved with a .jpg
-     * filename and produce an invalid image download.
-     */
-    const filenameExtension =
-      filename.split(".").pop()?.toLowerCase() || "";
-
-    const mediaPathExtension =
-      new URL(mediaUrl).pathname
-        .split(".")
-        .pop()
-        ?.toLowerCase() || "";
-
-    const imageExtensions = new Set([
-      "jpg",
-      "jpeg",
-      "png",
-      "webp",
-      "gif",
-      "avif",
-    ]);
-
-    const isImageMedia =
-      imageExtensions.has(filenameExtension) ||
-      imageExtensions.has(mediaPathExtension);
-
-    const shouldNormalizeInstagram =
-      isInstagramMedia && !isImageMedia;
-
-    const upstream = shouldNormalizeInstagram
+    const upstream = isInstagramMedia
       ? await fetch(
           "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/normalize",
           {
@@ -151,10 +120,9 @@ export async function GET(request: Request) {
         )
       : await fetch(mediaUrl, {
           headers: {
-            Accept:
-              isFacebookMedia || isImageMedia
-                ? "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
-                : "video/*,*/*;q=0.8",
+            Accept: isFacebookMedia
+              ? "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+              : "video/*,*/*;q=0.8",
             "User-Agent":
               "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
           },
