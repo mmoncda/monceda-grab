@@ -1520,6 +1520,9 @@ def extract():
 
     supported_hosts = {
         "instagram.com",
+        "facebook.com",
+        "m.facebook.com",
+        "fb.watch",
         "tiktok.com",
         "vm.tiktok.com",
         "vt.tiktok.com",
