@@ -85,6 +85,18 @@ function isInstagramStory(value: string) {
   }
 }
 
+function hasInstagramStoryId(value: string) {
+  try {
+    const parsed = new URL(value);
+
+    return /^\/stories\/[^/]+\/\d+\/?$/i.test(
+      parsed.pathname,
+    );
+  } catch {
+    return false;
+  }
+}
+
 function isBluesky(value: string) {
   return getHost(value) === "bsky.app";
 }
@@ -172,7 +184,8 @@ export async function POST(request: Request) {
 
     if (isInstagramMediaPost(url)) {
       const instagramApi =
-        isInstagramStory(url)
+        isInstagramStory(url) &&
+        hasInstagramStoryId(url)
           ? INSTAGRAM_STORY_EXTRACT_API
           : FALLBACK_API;
 
