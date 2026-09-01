@@ -206,10 +206,19 @@ export async function POST(request: Request) {
         fallbackResult = null;
       }
 
+      const fallbackItems =
+        Array.isArray(fallbackResult?.items)
+          ? fallbackResult.items
+          : [];
+
+      const hasFallbackMedia =
+        Boolean(fallbackResult?.url) ||
+        fallbackItems.length > 0;
+
       if (
         fallbackResponse.ok &&
         fallbackResult?.status === "ok" &&
-        fallbackResult?.url
+        hasFallbackMedia
       ) {
         return Response.json({
           ...fallbackResult,
@@ -225,7 +234,7 @@ export async function POST(request: Request) {
           error: {
             code: "error.api.fetch.fail",
             message:
-              "Instagram could not provide a downloadable video for this Reel.",
+              "Instagram could not provide downloadable media for this post.",
           },
         },
         { status: 422 },

@@ -128,8 +128,7 @@ export default function Home() {
       const isStory =
         isInstagramStory || isFacebookStory;
 
-      const firstStoryItem =
-        isStory &&
+      const firstMediaItem =
         Array.isArray(result.items) &&
         result.items.length > 0
           ? result.items[0]
@@ -138,7 +137,7 @@ export default function Home() {
       const mediaUrl =
         result.url ||
         result.picker?.[0]?.url ||
-        firstStoryItem?.url;
+        firstMediaItem?.url;
 
       const audioUrl =
         typeof result.audio_url === "string"
@@ -148,7 +147,7 @@ export default function Home() {
       const originalFilename =
         String(
           result.filename ||
-          firstStoryItem?.filename ||
+          firstMediaItem?.filename ||
           "",
         ).trim();
 
@@ -166,7 +165,10 @@ export default function Home() {
         );
       }
 
-      if (isStory && Array.isArray(result.items)) {
+      if (
+        Array.isArray(result.items) &&
+        result.items.length > 0
+      ) {
         const validStoryItems = result.items.filter(
           (item: unknown): item is StoryItem => {
             if (!item || typeof item !== "object") {
@@ -270,14 +272,14 @@ export default function Home() {
 
       setDownloadUrl(resolvedDownloadUrl);
 
-      const detectedStoryCount =
-        isStory && Array.isArray(result.items)
+      const detectedItemCount =
+        Array.isArray(result.items)
           ? result.items.length
           : 0;
 
       setMessage(
-        detectedStoryCount > 1
-          ? `${detectedStoryCount} ${detected?.name} Story items are ready.`
+        detectedItemCount > 1
+          ? `${detectedItemCount} ${detected?.name} media items are ready.`
           : `${detected?.name} media is ready.`,
       );
     } catch (error) {
@@ -373,12 +375,12 @@ export default function Home() {
           {storyItems.length > 1 && (
             <section
               className="story-results"
-              aria-label={`${detected?.name || "Social"} Story items`}
+              aria-label={`${detected?.name || "Social"} media items`}
             >
               <div className="story-results-head">
                 <div>
                   <span className="story-results-kicker">
-                    {detected?.name?.toUpperCase()} STORIES
+                    {detected?.name?.toUpperCase()} MEDIA
                   </span>
                   <h2>
                     {storyItems.length} items found
@@ -386,7 +388,7 @@ export default function Home() {
                 </div>
 
                 <span className="story-results-note">
-                  Choose a Story to preview or save.
+                  Choose an item to preview or save.
                 </span>
               </div>
 
@@ -445,7 +447,7 @@ export default function Home() {
                         {isImage ? (
                           <img
                             src={itemPreviewUrl}
-                            alt={`${detected?.name || "Social"} Story ${item.index}`}
+                            alt={`${detected?.name || "Social"} media item ${item.index}`}
                             loading="lazy"
                           />
                         ) : (
@@ -470,7 +472,7 @@ export default function Home() {
                       <div className="story-card-footer">
                         <div>
                           <strong>
-                            Story {item.index}
+                            Item {item.index}
                           </strong>
                           <small>
                             {isImage
@@ -503,18 +505,42 @@ export default function Home() {
 
           {storyItems.length <= 1 &&
             downloadUrl &&
-            previewUrl && (
-              <div className="video-preview">
-                <video
-                  src={previewUrl}
-                  controls
-                  playsInline
-                  preload="metadata"
-                >
-                  Your browser does not support video playback.
-                </video>
-              </div>
-            )}
+            previewUrl && (() => {
+              const singleItem = storyItems[0];
+
+              const singleExt = String(
+                singleItem?.ext ||
+                  downloadFilename
+                    .split(".")
+                    .pop() ||
+                  "",
+              ).toLowerCase();
+
+              const isSingleImage =
+                /^(?:jpe?g|png|webp|gif|avif)$/.test(
+                  singleExt,
+                );
+
+              return (
+                <div className="video-preview">
+                  {isSingleImage ? (
+                    <img
+                      src={previewUrl}
+                      alt={`${detected?.name || "Social"} media preview`}
+                    />
+                  ) : (
+                    <video
+                      src={previewUrl}
+                      controls
+                      playsInline
+                      preload="metadata"
+                    >
+                      Your browser does not support video playback.
+                    </video>
+                  )}
+                </div>
+              );
+            })()}
         </form>
 
         <div className="platform-row" id="platforms" aria-label="Supported platforms">
