@@ -16,8 +16,7 @@
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
     "dev:vinext": "vinext dev --port 3001",
     "build:vinext": "vinext build",
-    "start:vinext": "vinext start",
-    "deploy:processor:cloudflare": "node scripts/deploy-processor-cloudflare.mjs"
+    "start:vinext": "vinext start"
   },
   "dependencies": {
     "@cloudflare/containers": "^0.3.7",
