@@ -184,8 +184,7 @@ export async function POST(request: Request) {
 
     if (isInstagramMediaPost(url)) {
       const instagramApi =
-        isInstagramStory(url) &&
-        hasInstagramStoryId(url)
+        isInstagramStory(url)
           ? INSTAGRAM_STORY_EXTRACT_API
           : FALLBACK_API;
 
