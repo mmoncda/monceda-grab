@@ -578,7 +578,7 @@ export default function Home() {
             <span className="number">03</span>
             <div className="step-icon">↓</div>
             <h3>Choose &amp; save</h3>
-            <p>Select an available quality or format, then download directly to your device.</p>
+            <p>Preview the available media, then save it directly to your device.</p>
           </article>
         </div>
       </section>
@@ -611,22 +611,9 @@ export default function Home() {
           <p><strong>Respect creators.</strong> Download only content you own, content in the public domain, or content you have permission to use.</p>
         </div>
         <div className="trust-links">
-          <a
-            className="norton-trust-card"
-            href="https://safeweb.norton.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="View Norton Safe Web"
-          >
-            <span className="norton-shield" aria-hidden="true">
-              <span>✓</span>
-            </span>
-            <span className="norton-copy">
-              <small className="norton-label">NORTON SAFE WEB</small>
-              <strong>Safe</strong>
-              <small className="norton-date">Analyzed August 11, 2026</small>
-            </span>
-          </a>
+          <span className="trust-principle">
+            PUBLIC LINKS · RESPONSIBLE USE · CLEAR ADVERTISING
+          </span>
           <span>MONCEDA LABS · SOFTWARE SOLUTIONS. REAL IMPACT.</span>
         </div>
       </section>
@@ -648,7 +635,7 @@ export default function Home() {
             <h3>Privacy Policy</h3>
             <p>No account is required. The public URL you submit is sent to our processing provider so it can locate available media. Monceda Grab does not intentionally store downloaded files.</p>
             <p>Our hosting, security, and processing providers may temporarily process technical data such as IP address, request time, submitted URL, browser information, rate-limit data, and error logs for delivery, security, and troubleshooting.</p>
-            <p>If advertising is enabled, advertising partners may use cookies or similar technologies to measure ads, prevent fraud, and personalize or limit advertising as allowed by your location and choices. We will identify advertising clearly and update this policy when a specific provider is activated.</p>
+            <p>Monceda Grab uses Google AdSense to display and measure clearly labeled advertising. Google and its partners may use cookies or similar technologies to deliver ads, prevent fraud, measure performance, and personalize or limit advertising according to your location and choices.</p>
             <p>Do not submit URLs containing personal, confidential, or sensitive information.</p>
           </article>
           <article id="copyright">
