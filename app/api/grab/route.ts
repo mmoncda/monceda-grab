@@ -302,11 +302,12 @@ export async function POST(request: Request) {
     ) {
       const fallbackResponse = await fetch(FALLBACK_API, {
         method: "POST",
-        headers: {
+        headers: getProcessorAuthHeaders({
           "Content-Type": "application/json",
           Accept: "application/json",
-        },
+        }),
         body: JSON.stringify({ url }),
+        redirect: "manual",
       });
 
       let fallbackResult: ApiResult | null = null;
