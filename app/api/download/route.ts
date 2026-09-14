@@ -1,3 +1,5 @@
+import { getProcessorAuthHeaders } from "../_processor-auth";
+
 function isAllowedMediaUrl(value: string) {
   try {
     const parsed = new URL(value);
@@ -132,10 +134,10 @@ export async function GET(request: Request) {
           "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/normalize",
           {
             method: "POST",
-            headers: {
+            headers: getProcessorAuthHeaders({
               "Content-Type": "application/json",
               Accept: "video/mp4",
-            },
+            }),
             body: JSON.stringify({
               url: mediaUrl,
               ...(audioUrl
@@ -145,6 +147,7 @@ export async function GET(request: Request) {
                 ? { fast_remux: true }
                 : {}),
             }),
+            redirect: "manual",
           },
         )
       : await fetch(mediaUrl, {

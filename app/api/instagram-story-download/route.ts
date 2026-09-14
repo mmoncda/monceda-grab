@@ -1,3 +1,5 @@
+import { getProcessorAuthHeaders } from "../_processor-auth";
+
 const STORY_API =
   "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/story/download";
 
@@ -35,11 +37,12 @@ export async function GET(request: Request) {
 
     const upstream = await fetch(STORY_API, {
       method: "POST",
-      headers: {
+      headers: getProcessorAuthHeaders({
         "Content-Type": "application/json",
         Accept: "video/mp4",
-      },
+      }),
       body: JSON.stringify({ url }),
+      redirect: "manual",
     });
 
     if (!upstream.ok || !upstream.body) {

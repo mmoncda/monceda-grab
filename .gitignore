@@ -15,3 +15,4 @@ tools/
 
 # Separate Render fallback service
 processor/
+.dev.vars*

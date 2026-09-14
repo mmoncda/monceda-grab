@@ -1,3 +1,5 @@
+import { getProcessorAuthHeaders } from "../_processor-auth";
+
 const COBALT_API = "https://monceda-grab-api-us.onrender.com/";
 const FALLBACK_API =
   "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/extract";
@@ -142,11 +144,12 @@ export async function POST(request: Request) {
         FACEBOOK_STORY_EXTRACT_API,
         {
           method: "POST",
-          headers: {
+          headers: getProcessorAuthHeaders({
             "Content-Type": "application/json",
             Accept: "application/json",
-          },
+          }),
           body: JSON.stringify({ url }),
+          redirect: "manual",
         },
       );
 
@@ -190,11 +193,12 @@ export async function POST(request: Request) {
 
       const fallbackResponse = await fetch(instagramApi, {
         method: "POST",
-        headers: {
+        headers: getProcessorAuthHeaders({
           "Content-Type": "application/json",
           Accept: "application/json",
-        },
+        }),
         body: JSON.stringify({ url }),
+        redirect: "manual",
       });
 
       let fallbackResult: ApiResult | null = null;
