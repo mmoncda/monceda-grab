@@ -191,7 +191,7 @@ export default function Home() {
 
       const isInstagramReel =
         detected?.name === "Instagram" &&
-        /instagram\.com\/reel\//i.test(url);
+        /instagram\.com\/reels?\//i.test(url);
 
       const returnedImageForReel =
         isInstagramReel &&
