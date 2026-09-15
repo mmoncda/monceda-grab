@@ -326,11 +326,15 @@ export default function Home() {
           <div className="url-box">
             <span className="link-icon"><LinkIcon /></span>
             <input
+              type="url"
               value={url}
               onChange={(event) => { setUrl(event.target.value); setMessage(""); }}
               placeholder="Paste a public video or image link here..."
               aria-label="Public social media link"
               inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
             />
             {detected && <span className="detected" style={{ color: detected.color }}>{detected.short} {detected.name}</span>}
             <button type="submit" disabled={isChecking}>
@@ -342,7 +346,7 @@ export default function Home() {
             <span>•</span>
             <span>No sign-in required</span>
             <span>•</span>
-            <span>Files aren&apos;t stored</span>
+            <span>Downloads aren&apos;t intentionally stored</span>
           </div>
           <label className="rights-check">
             <input
