@@ -76,7 +76,7 @@ export async function GET(request: Request) {
     headers.set("Cache-Control", "private, no-store");
 
     return new Response(upstream.body, {
-      status: upstream.status === 206 ? 206 : 200,
+      status: upstream.status,
       headers,
     });
   } catch (error) {

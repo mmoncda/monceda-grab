@@ -66,7 +66,7 @@ function isInstagramMediaPost(value: string) {
 
     return (
       host === "instagram.com" &&
-      /^\/(?:reel|p|tv|stories)\//i.test(parsed.pathname)
+      /^\/(?:reels?|p|tv|stories)\//i.test(parsed.pathname)
     );
   } catch {
     return false;
