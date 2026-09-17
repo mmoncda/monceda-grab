@@ -266,8 +266,27 @@ export default function Home() {
       const cleanPreviewUrl =
         String(mediaUrl).replace(/&amp;/g, "&");
 
+      const normalizePreview =
+        detected?.name === "Instagram" &&
+        !/\.(?:jpe?g|png|webp|gif|avif)$/i.test(
+          safeFilename,
+        );
+
+      const previewCompatibilityQuery =
+        normalizePreview
+          ? `&normalize=1${
+              audioUrl
+                ? `&audio_url=${encodeURIComponent(
+                    audioUrl.replace(/&amp;/g, "&"),
+                  )}`
+                : ""
+            }`
+          : "";
+
       setPreviewUrl(
-        `/api/preview?url=${encodeURIComponent(cleanPreviewUrl)}`,
+        `/api/preview?url=${encodeURIComponent(
+          cleanPreviewUrl,
+        )}${previewCompatibilityQuery}`,
       );
 
       setDownloadUrl(resolvedDownloadUrl);
@@ -409,10 +428,24 @@ export default function Home() {
                   const cleanItemUrl =
                     String(item.url).replace(/&amp;/g, "&");
 
+                  const itemPreviewCompatibilityQuery =
+                    detected?.name === "Instagram" && !isImage
+                      ? `&normalize=1${
+                          item.audio_url
+                            ? `&audio_url=${encodeURIComponent(
+                                String(item.audio_url).replace(
+                                  /&amp;/g,
+                                  "&",
+                                ),
+                              )}`
+                            : ""
+                        }`
+                      : "";
+
                   const itemPreviewUrl =
                     `/api/preview?url=${encodeURIComponent(
                       cleanItemUrl,
-                    )}`;
+                    )}${itemPreviewCompatibilityQuery}`;
 
                   const itemPosterUrl =
                     typeof item.thumbnail === "string" &&
