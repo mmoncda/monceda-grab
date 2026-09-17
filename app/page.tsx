@@ -60,7 +60,6 @@ export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState("");
   const [downloadFilename, setDownloadFilename] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
-  const [previewPosterUrl, setPreviewPosterUrl] = useState("");
   const [storyItems, setStoryItems] = useState<StoryItem[]>([]);
   const [isChecking, setIsChecking] = useState(false);
   const [hasRights, setHasRights] = useState(false);
@@ -72,7 +71,6 @@ export default function Home() {
     setDownloadUrl("");
     setDownloadFilename("");
     setPreviewUrl("");
-    setPreviewPosterUrl("");
     setStoryItems([]);
 
     if (!hasRights) {
@@ -145,13 +143,6 @@ export default function Home() {
         typeof result.audio_url === "string"
           ? result.audio_url
           : "";
-
-      const previewThumbnailUrl =
-        typeof result.thumbnail === "string"
-          ? result.thumbnail
-          : typeof firstMediaItem?.thumbnail === "string"
-            ? firstMediaItem.thumbnail
-            : "";
 
       const originalFilename =
         String(
@@ -277,15 +268,6 @@ export default function Home() {
 
       setPreviewUrl(
         `/api/preview?url=${encodeURIComponent(cleanPreviewUrl)}`,
-      );
-
-      const cleanPreviewPosterUrl =
-        String(previewThumbnailUrl || "").replace(/&amp;/g, "&");
-
-      setPreviewPosterUrl(
-        cleanPreviewPosterUrl
-          ? `/api/preview?url=${encodeURIComponent(cleanPreviewPosterUrl)}`
-          : "",
       );
 
       setDownloadUrl(resolvedDownloadUrl);
@@ -553,25 +535,9 @@ export default function Home() {
                   ) : (
                     <video
                       src={previewUrl}
-                      poster={previewPosterUrl || undefined}
                       controls
                       playsInline
-                      preload="auto"
-                      onLoadedMetadata={(event) => {
-                        const video = event.currentTarget;
-
-                        if (
-                          !previewPosterUrl &&
-                          Number.isFinite(video.duration) &&
-                          video.duration > 0 &&
-                          video.currentTime === 0
-                        ) {
-                          video.currentTime = Math.min(
-                            0.05,
-                            video.duration / 100,
-                          );
-                        }
-                      }}
+                      preload="metadata"
                     >
                       Your browser does not support video playback.
                     </video>
