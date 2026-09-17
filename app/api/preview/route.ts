@@ -67,6 +67,7 @@ export async function GET(request: Request) {
             headers: getProcessorAuthHeaders({
               "Content-Type": "application/json",
               Accept: "video/mp4",
+              ...(range ? { Range: range } : {}),
             }),
             body: JSON.stringify({
               url: mediaUrl,
@@ -107,28 +108,22 @@ export async function GET(request: Request) {
       headers.set("Content-Length", contentLength);
     }
 
-    if (!shouldNormalizeInstagram) {
-      const contentRange =
-        upstream.headers.get("Content-Range");
+    const contentRange =
+      upstream.headers.get("Content-Range");
 
-      if (contentRange) {
-        headers.set("Content-Range", contentRange);
-      }
-
-      headers.set(
-        "Accept-Ranges",
-        upstream.headers.get("Accept-Ranges") || "bytes",
-      );
+    if (contentRange) {
+      headers.set("Content-Range", contentRange);
     }
+
+    headers.set(
+      "Accept-Ranges",
+      upstream.headers.get("Accept-Ranges") || "bytes",
+    );
 
     headers.set("Cache-Control", "private, no-store");
 
     return new Response(upstream.body, {
-      status: shouldNormalizeInstagram
-        ? 200
-        : upstream.status === 206
-          ? 206
-          : 200,
+      status: upstream.status === 206 ? 206 : 200,
       headers,
     });
   } catch (error) {
