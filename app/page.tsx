@@ -906,10 +906,20 @@ export default function Home() {
                     />
                   ) : (
                     <video
-                      src={previewUrl}
+                      src={
+                        detected?.name === "TikTok" ||
+                        detected?.name === "Facebook"
+                          ? `${previewUrl}#t=0.001`
+                          : previewUrl
+                      }
                       controls
                       playsInline
-                      preload="metadata"
+                      preload={
+                        detected?.name === "TikTok" ||
+                        detected?.name === "Facebook"
+                          ? "auto"
+                          : "metadata"
+                      }
                     >
                       Your browser does not support video playback.
                     </video>

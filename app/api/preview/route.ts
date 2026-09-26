@@ -175,7 +175,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const upstream = shouldNormalizeInstagram
+    let upstream = shouldNormalizeInstagram
       ? await fetch(
           "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/normalize",
           {
@@ -203,6 +203,32 @@ export async function GET(request: Request) {
           },
           redirect: "follow",
         });
+
+    const isTikTokTunnelMedia =
+      mediaHost === "monceda-grab-api-us.onrender.com";
+
+    const malformedTikTokRange =
+      isTikTokTunnelMedia &&
+      Boolean(range) &&
+      upstream.status === 206 &&
+      !upstream.headers.get("Content-Range");
+
+    if (malformedTikTokRange) {
+      await upstream.body?.cancel().catch(
+        () => undefined,
+      );
+
+      upstream = await fetch(mediaUrl, {
+        headers: {
+          Accept: "video/*,*/*;q=0.8",
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15",
+        },
+        redirect: "follow",
+        cache: "no-store",
+        signal: request.signal,
+      });
+    }
 
     if (!upstream.ok || !upstream.body) {
       return new Response("Preview fetch failed", {
@@ -239,7 +265,12 @@ export async function GET(request: Request) {
     headers.set("Cache-Control", "private, no-store");
 
     return new Response(upstream.body, {
-      status: upstream.status === 206 ? 206 : 200,
+      status:
+        malformedTikTokRange
+          ? 200
+          : upstream.status === 206
+            ? 206
+            : 200,
       headers,
     });
   } catch (error) {
