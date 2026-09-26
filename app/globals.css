@@ -1536,3 +1536,392 @@ button:focus-visible,
     transform: none;
   }
 }
+
+/* ===== MONCEDA GRAB — HERO COPY SMALLER + CENTERED ===== */
+
+.hero-copy {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+@media (max-width: 430px) {
+  .hero-copy {
+    max-width: 92%;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+}
+
+
+/* ===== MONCEDA GRAB — ONE SHARED HERO S ===== */
+
+.hero-title-shared-s {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 3px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left !important;
+}
+
+.hero-shared-s {
+  display: block;
+  flex: 0 0 auto;
+  margin-right: -2px;
+  font-size: 112px;
+  font-weight: 400;
+  line-height: 0.78;
+  letter-spacing: -0.08em;
+  color: #f5f7fb;
+  transform: translateY(1px);
+}
+
+.hero-shared-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 0.98;
+}
+
+.hero-shared-top,
+.hero-shared-bottom {
+  display: block;
+  white-space: nowrap;
+  font-size: 58px;
+  font-weight: 400;
+  letter-spacing: -0.055em;
+}
+
+.hero-shared-top {
+  color: #f5f7fb;
+}
+
+.hero-shared-bottom {
+  color: #4c9cff;
+}
+
+@media (max-width: 700px) {
+  .hero-title-shared-s {
+    gap: 2px;
+  }
+
+  .hero-shared-s {
+    font-size: 72px;
+  }
+
+  .hero-shared-top,
+  .hero-shared-bottom {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-shared-s {
+    font-size: 58px;
+  }
+
+  .hero-shared-top,
+  .hero-shared-bottom {
+    font-size: 29px;
+  }
+}
+
+
+/* ===== MONCEDA GRAB — SHARED S LARGER ===== */
+
+.hero-shared-s {
+  font-size: 138px;
+  line-height: 0.72;
+  transform: translateY(2px);
+}
+
+@media (max-width: 700px) {
+  .hero-shared-s {
+    font-size: 86px;
+    line-height: 0.74;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-shared-s {
+    font-size: 68px;
+    line-height: 0.76;
+  }
+}
+
+
+/* ===== MONCEDA GRAB — SHARED S EXTRA LARGE ===== */
+
+.hero-shared-s {
+  font-size: 158px;
+  line-height: 0.68;
+  transform: translateY(3px);
+}
+
+@media (max-width: 700px) {
+  .hero-shared-s {
+    font-size: 96px;
+    line-height: 0.72;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-shared-s {
+    font-size: 76px;
+    line-height: 0.74;
+  }
+}
+
+
+/* ===== MONCEDA GRAB — SHARED S XXL ===== */
+
+.hero-shared-s {
+  font-size: 184px;
+  line-height: 0.64;
+  transform: translateY(4px);
+}
+
+@media (max-width: 700px) {
+  .hero-shared-s {
+    font-size: 112px;
+    line-height: 0.68;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-shared-s {
+    font-size: 88px;
+    line-height: 0.70;
+  }
+}
+
+
+/* ===== MONCEDA GRAB — SHARED S THICK + TWO TONE ===== */
+
+.hero-shared-s {
+  font-size: 184px;
+  font-weight: 900;
+  line-height: 0.72;
+  margin-right: -8px;
+  letter-spacing: -0.10em;
+
+  background: linear-gradient(
+    to bottom,
+    #f5f7fb 0%,
+    #f5f7fb 49%,
+    #4c9cff 49%,
+    #4c9cff 100%
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+
+  transform: translateY(3px);
+}
+
+@media (max-width: 700px) {
+  .hero-shared-s {
+    font-size: 112px;
+    font-weight: 900;
+    margin-right: -5px;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-shared-s {
+    font-size: 88px;
+    font-weight: 900;
+    margin-right: -4px;
+  }
+}
+
+
+/* ===== MONCEDA GRAB — SHARED S BALANCE + SPACING ===== */
+
+.hero-title-shared-s {
+  gap: 10px;
+}
+
+.hero-shared-s {
+  font-size: 172px;
+  font-weight: 900;
+  line-height: 0.74;
+  margin-right: 0;
+  letter-spacing: -0.08em;
+
+  background: linear-gradient(
+    to bottom,
+    #f5f7fb 0%,
+    #f5f7fb 50%,
+    #4c9cff 50%,
+    #4c9cff 100%
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+
+  transform: translateY(2px);
+}
+
+.hero-shared-lines {
+  transform: translateX(2px);
+}
+
+.hero-shared-top,
+.hero-shared-bottom {
+  font-size: 58px;
+  line-height: 0.98;
+}
+
+.hero-shared-top {
+  margin-bottom: -2px;
+}
+
+.hero-shared-bottom {
+  margin-top: -2px;
+}
+
+@media (max-width: 700px) {
+  .hero-title-shared-s {
+    gap: 6px;
+  }
+
+  .hero-shared-s {
+    font-size: 106px;
+    margin-right: 0;
+  }
+
+  .hero-shared-top,
+  .hero-shared-bottom {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-title-shared-s {
+    gap: 4px;
+  }
+
+  .hero-shared-s {
+    font-size: 84px;
+  }
+
+  .hero-shared-top,
+  .hero-shared-bottom {
+    font-size: 29px;
+  }
+}
+
+
+/* ===== MONCEDA GRAB — SHARED S FINAL POLISH ===== */
+
+.hero-title-shared-s {
+  gap: 6px;
+}
+
+.hero-shared-s {
+  font-size: 172px;
+  font-weight: 900;
+  line-height: 0.74;
+  margin-right: 0;
+  letter-spacing: -0.08em;
+
+  background: linear-gradient(
+    to bottom,
+    #f5f7fb 0%,
+    #f5f7fb 50%,
+    #4c9cff 50%,
+    #4c9cff 100%
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+
+  transform: translateY(0);
+}
+
+.hero-shared-lines {
+  transform: translateX(0);
+}
+
+.hero-shared-top,
+.hero-shared-bottom {
+  font-size: 58px;
+  line-height: 0.98;
+}
+
+.hero-shared-top {
+  margin-bottom: -2px;
+}
+
+.hero-shared-bottom {
+  margin-top: -2px;
+}
+
+@media (max-width: 700px) {
+  .hero-title-shared-s {
+    gap: 4px;
+  }
+
+  .hero-shared-s {
+    font-size: 106px;
+    transform: translateY(0);
+  }
+
+  .hero-shared-top,
+  .hero-shared-bottom {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-title-shared-s {
+    gap: 3px;
+  }
+
+  .hero-shared-s {
+    font-size: 84px;
+  }
+
+  .hero-shared-top,
+  .hero-shared-bottom {
+    font-size: 29px;
+  }
+}
+
+
+/* ===== MONCEDA GRAB — REMOVE DUPLICATE HEADER WORDMARK ===== */
+.brand {
+  gap: 0 !important;
+}
+
+.brand-text,
+.brand .brand-text {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.brand-mark {
+  margin-right: 0 !important;
+}

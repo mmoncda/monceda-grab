@@ -606,7 +606,6 @@ export default function Home() {
             <span className="logo-wing logo-wing-right" />
             <span className="logo-center" />
           </span>
-          <span className="brand-name"><span>MONCEDA</span><b>GRAB</b></span>
         </a>
         <div className="nav-links">
           <a href="#how">How it works</a>
@@ -619,7 +618,14 @@ export default function Home() {
 
       <section className="hero shell" id="top">
         <div className="eyebrow"><span /> PUBLIC MEDIA DOWNLOADER</div>
-        <h1>Save what matters.<br /><em>Simple. Fast. Yours.</em></h1>
+        <h1 className="hero-title-shared-s" aria-label="Save what matters. Simple. Fast. Yours.">
+  <span className="hero-shared-s" aria-hidden="true">S</span>
+
+  <span className="hero-shared-lines" aria-hidden="true">
+    <span className="hero-shared-top">ave what matters.</span>
+    <span className="hero-shared-bottom">imple. Fast. Yours.</span>
+  </span>
+</h1>
         <p className="hero-copy">
           Paste a public social media link and save the available video or image—cleanly, quickly, and without the clutter.
         </p>
