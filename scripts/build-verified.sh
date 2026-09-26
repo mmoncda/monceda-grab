@@ -25,4 +25,22 @@ timeout \
   "${SITES_BUILD_TIMEOUT:-3m}" \
   "${vinext}" build
 
+# MG-RELEASE-6: Remove only the generated local secrets copy.
+generated_secrets="${SITES_PROJECT_ROOT}/dist/server/.dev.vars"
+
+if [[ -L "${generated_secrets}" ]]; then
+  echo "STOP — Generated secret path is a symlink." >&2
+  exit 65
+fi
+
+if [[ -e "${generated_secrets}" ]]; then
+  if [[ ! -f "${generated_secrets}" ]]; then
+    echo "STOP — Unexpected generated secret path." >&2
+    exit 65
+  fi
+
+  rm -- "${generated_secrets}"
+  echo "Removed generated dist/server/.dev.vars"
+fi
+
 "${script_dir}/validate-artifact.sh"

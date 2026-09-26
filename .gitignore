@@ -16,3 +16,6 @@ tools/
 # Separate Render fallback service
 processor/
 .dev.vars*
+.youtube-processor-token.local
+.youtube-processor-token.y54
+.youtube-processor-token.*

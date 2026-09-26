@@ -21,3 +21,26 @@ export function getProcessorAuthHeaders(
 
   return headers;
 }
+
+
+export function getYoutubeProcessorAuthHeaders(
+  headers?: HeadersInit,
+) {
+  const token =
+    process.env.MONCEDA_YOUTUBE_PROCESSOR_TOKEN?.trim();
+
+  if (!token) {
+    throw new Error(
+      "MONCEDA_YOUTUBE_PROCESSOR_TOKEN is not configured",
+    );
+  }
+
+  const nextHeaders = new Headers(headers);
+
+  nextHeaders.set(
+    "X-Monceda-Processor-Token",
+    token,
+  );
+
+  return nextHeaders;
+}

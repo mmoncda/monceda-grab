@@ -30,6 +30,7 @@ const platforms: Platform[] = [
   { name: "Pinterest", short: "P", color: "#e60023" },
   { name: "Bluesky", short: "B", color: "#60a5fa" },
   { name: "Snapchat", short: "S", color: "#fde047" },
+  { name: "YouTube", short: "▶", color: "#ff0000" },
 ];
 
 function detectPlatform(value: string) {
@@ -42,6 +43,10 @@ function detectPlatform(value: string) {
   if (url.includes("pinterest.com") || url.includes("pin.it")) return platforms[4];
   if (url.includes("bsky.app")) return platforms[5];
   if (url.includes("snapchat.com")) return platforms[6];
+  if (
+    url.includes("youtube.com") ||
+    url.includes("youtu.be")
+  ) return platforms[7];
 
   return null;
 }
@@ -59,19 +64,274 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
   const [downloadFilename, setDownloadFilename] = useState("");
+  const [youtubeDownloadBusy, setYoutubeDownloadBusy] =
+    useState(false);
+  const [youtubeDownloadDone, setYoutubeDownloadDone] =
+    useState(false);
+  const [youtubeDownloadError, setYoutubeDownloadError] =
+    useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [storyItems, setStoryItems] = useState<StoryItem[]>([]);
+  const [storySourceUrl, setStorySourceUrl] = useState("");
+  const [storyDownloadBusy, setStoryDownloadBusy] =
+    useState<Record<string, boolean>>({});
+
+  const [storyDownloadErrors, setStoryDownloadErrors] =
+    useState<Record<string, string>>({});
+
   const [isChecking, setIsChecking] = useState(false);
   const [hasRights, setHasRights] = useState(false);
   const detected = useMemo(() => detectPlatform(url), [url]);
+
+
+  async function saveInstagramStory(
+    downloadUrl: string,
+    filename: string,
+    itemId: string,
+  ) {
+    setStoryDownloadBusy((previous) => ({
+      ...previous,
+      [itemId]: true,
+    }));
+
+    setStoryDownloadErrors((previous) => ({
+      ...previous,
+      [itemId]: "",
+    }));
+
+    try {
+      const selectedItem = storyItems.find(
+        (item) => item.id === itemId,
+      );
+
+      const directParams = new URLSearchParams();
+
+      if (selectedItem?.url) {
+        directParams.set(
+          "url",
+          selectedItem.url.replace(/&amp;/g, "&"),
+        );
+
+        directParams.set("filename", filename);
+
+        if (selectedItem.audio_url) {
+          directParams.set(
+            "audio_url",
+            selectedItem.audio_url.replace(/&amp;/g, "&"),
+          );
+        }
+      }
+
+      const directDownloadUrl = selectedItem?.url
+        ? `/api/download?${directParams.toString()}`
+        : downloadUrl;
+
+      let response: Response;
+
+      try {
+        response = await fetch(directDownloadUrl, {
+          cache: "no-store",
+        });
+      } catch {
+        response = await fetch(downloadUrl, {
+          cache: "no-store",
+        });
+      }
+
+      const shouldRefresh =
+        directDownloadUrl !== downloadUrl &&
+        [502, 503, 504].includes(response.status);
+
+      if (shouldRefresh) {
+        await response.body?.cancel().catch(
+          () => undefined,
+        );
+
+        response = await fetch(downloadUrl, {
+          cache: "no-store",
+        });
+      }
+
+      const contentType = (
+        response.headers.get("Content-Type") || ""
+      ).split(";")[0].trim().toLowerCase();
+
+      const isMedia =
+        contentType.startsWith("video/") ||
+        contentType.startsWith("image/");
+
+      if (!response.ok || !isMedia) {
+        let code = "";
+
+        if (contentType.includes("json")) {
+          const body = await response
+            .json()
+            .catch(() => null);
+
+          code =
+            typeof body?.error?.code === "string"
+              ? body.error.code
+              : "";
+        }
+
+        const message =
+          code === "instagram_story_item_unavailable"
+            ? "This Story is no longer available."
+            : code === "instagram_story_refresh_failed"
+              ? "Story refresh failed. Try again."
+              : code === "error.api.download.fetch"
+                ? "Video processing failed. Try again."
+                : "Media download failed.";
+
+        throw new Error(
+          `${message} HTTP ${response.status}${
+            code ? ` (${code})` : ""
+          }`,
+        );
+      }
+
+      const blob = await response.blob();
+
+      if (!blob.size) {
+        throw new Error(
+          "The server returned an empty media file.",
+        );
+      }
+
+      if (contentType === "video/mp4") {
+        const header = new Uint8Array(
+          await blob.slice(0, 12).arrayBuffer(),
+        );
+
+        const signature = String.fromCharCode(
+          ...header.slice(4, 8),
+        );
+
+        if (signature !== "ftyp") {
+          throw new Error(
+            "The server did not return a valid MP4 header.",
+          );
+        }
+      }
+
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = objectUrl;
+      link.download = filename;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.setTimeout(
+        () => URL.revokeObjectURL(objectUrl),
+        60000,
+      );
+
+    } catch (error) {
+      setStoryDownloadErrors((previous) => ({
+        ...previous,
+        [itemId]:
+          error instanceof Error
+            ? error.message
+            : "Download failed. Please try again.",
+      }));
+
+    } finally {
+      setStoryDownloadBusy((previous) => ({
+        ...previous,
+        [itemId]: false,
+      }));
+    }
+  }
+
+  async function saveYoutubeMedia(
+    downloadUrl: string,
+    filename: string,
+  ) {
+    if (youtubeDownloadBusy) {
+      return;
+    }
+
+    setYoutubeDownloadBusy(true);
+    setYoutubeDownloadDone(false);
+    setYoutubeDownloadError("");
+
+    try {
+      const response = await fetch(downloadUrl, {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Download failed (${response.status}).`,
+        );
+      }
+
+      const contentType =
+        response.headers.get("Content-Type") || "";
+
+      if (
+        !contentType.startsWith("video/") &&
+        !contentType.includes("octet-stream")
+      ) {
+        throw new Error(
+          "The download did not return a video file.",
+        );
+      }
+
+      /*
+       * Keep the button busy until the full response has
+       * reached the browser. This mirrors the Instagram
+       * download UX instead of using a fixed timer.
+       */
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+
+      link.href = objectUrl;
+      link.download = filename || "youtube-video.mp4";
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setYoutubeDownloadDone(true);
+
+      window.setTimeout(() => {
+        setYoutubeDownloadDone(false);
+      }, 1800);
+
+      window.setTimeout(() => {
+        URL.revokeObjectURL(objectUrl);
+      }, 60000);
+    } catch (error) {
+      setYoutubeDownloadError(
+        error instanceof Error
+          ? error.message
+          : "Download failed. Please try again.",
+      );
+    } finally {
+      setYoutubeDownloadBusy(false);
+    }
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setMessage("");
     setDownloadUrl("");
     setDownloadFilename("");
+    setYoutubeDownloadBusy(false);
+    setYoutubeDownloadDone(false);
+    setYoutubeDownloadError("");
     setPreviewUrl("");
     setStoryItems([]);
+    setStorySourceUrl("");
+    setStoryDownloadBusy({});
+    setStoryDownloadErrors({});
+
 
     if (!hasRights) {
       setMessage("Please confirm that you have the right or permission to download this content.");
@@ -88,11 +348,19 @@ export default function Home() {
 
     setIsChecking(true);
     try {
-      const response = await fetch("/api/grab", {
+      const isYouTube =
+        detected?.name === "YouTube";
+
+      const response = await fetch(
+        isYouTube
+          ? "/api/youtube/extract"
+          : "/api/grab",
+        {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ url }),
-      });
+        },
+      );
       const result = await response.json();
 
       if (!response.ok || result.status === "error") {
@@ -115,6 +383,39 @@ export default function Home() {
           );
 
         throw new Error(friendlyMessage);
+      }
+
+
+      if (isYouTube) {
+        const youtubeTitle =
+          typeof result.title === "string" &&
+          result.title.trim()
+            ? result.title.trim()
+            : "YouTube video";
+
+        const youtubeFilename =
+          typeof result.filename === "string" &&
+          result.filename.trim()
+            ? result.filename.trim()
+            : "youtube-video.mp4";
+
+        const youtubeThumbnail =
+          typeof result.thumbnail === "string"
+            ? result.thumbnail.trim()
+            : "";
+
+        setDownloadUrl(
+          `/api/youtube/download?url=${encodeURIComponent(url)}`,
+        );
+        setDownloadFilename(youtubeFilename);
+        setPreviewUrl(youtubeThumbnail);
+        setStoryItems([]);
+        setStorySourceUrl("");
+        setMessage(
+          `${youtubeTitle} is ready to download.`,
+        );
+
+        return;
       }
 
       const isInstagramStory =
@@ -187,6 +488,7 @@ export default function Home() {
         );
 
         setStoryItems(validStoryItems);
+        setStorySourceUrl(isInstagramStory && validStoryItems.length > 0 ? url : "");
       }
 
       const isInstagramReel =
@@ -266,27 +568,10 @@ export default function Home() {
       const cleanPreviewUrl =
         String(mediaUrl).replace(/&amp;/g, "&");
 
-      const normalizePreview =
-        detected?.name === "Instagram" &&
-        !/\.(?:jpe?g|png|webp|gif|avif)$/i.test(
-          safeFilename,
-        );
-
-      const previewCompatibilityQuery =
-        normalizePreview
-          ? `&normalize=1${
-              audioUrl
-                ? `&audio_url=${encodeURIComponent(
-                    audioUrl.replace(/&amp;/g, "&"),
-                  )}`
-                : ""
-            }`
-          : "";
-
       setPreviewUrl(
         `/api/preview?url=${encodeURIComponent(
           cleanPreviewUrl,
-        )}${previewCompatibilityQuery}`,
+        )}`,
       );
 
       setDownloadUrl(resolvedDownloadUrl);
@@ -388,9 +673,41 @@ export default function Home() {
                   href={downloadUrl}
                   download={downloadFilename || true}
                   rel="nofollow"
+                  aria-live="polite"
+                  aria-busy={
+                    detected?.name === "YouTube"
+                      ? youtubeDownloadBusy
+                      : undefined
+                  }
+                  onClick={(event) => {
+                    if (detected?.name !== "YouTube") {
+                      return;
+                    }
+
+                    event.preventDefault();
+
+                    void saveYoutubeMedia(
+                      downloadUrl,
+                      downloadFilename ||
+                        "youtube-video.mp4",
+                    );
+                  }}
                 >
-                  Download media ↓
-                </a></>
+                  {detected?.name === "YouTube"
+                    ? youtubeDownloadBusy
+                      ? "Downloading…"
+                      : youtubeDownloadDone
+                        ? "Downloaded ✓"
+                        : "Download media ↓"
+                    : "Download media ↓"}
+                </a>
+                  {detected?.name === "YouTube" &&
+                    youtubeDownloadError && (
+                      <small role="alert">
+                        {youtubeDownloadError}
+                      </small>
+                    )}
+                </>
               )}
             </div>
           )}
@@ -428,24 +745,10 @@ export default function Home() {
                   const cleanItemUrl =
                     String(item.url).replace(/&amp;/g, "&");
 
-                  const itemPreviewCompatibilityQuery =
-                    detected?.name === "Instagram" && !isImage
-                      ? `&normalize=1${
-                          item.audio_url
-                            ? `&audio_url=${encodeURIComponent(
-                                String(item.audio_url).replace(
-                                  /&amp;/g,
-                                  "&",
-                                ),
-                              )}`
-                            : ""
-                        }`
-                      : "";
-
                   const itemPreviewUrl =
                     `/api/preview?url=${encodeURIComponent(
                       cleanItemUrl,
-                    )}${itemPreviewCompatibilityQuery}`;
+                    )}`;
 
                   const itemPosterUrl =
                     typeof item.thumbnail === "string" &&
@@ -460,7 +763,9 @@ export default function Home() {
                     `${detected?.name === "Facebook" ? "facebook" : "instagram"}_story_${item.id}.${itemExt}`;
 
                   const itemDownloadUrl =
-                    `/api/download?url=${encodeURIComponent(
+                    storySourceUrl
+                      ? `/api/instagram-story-item-download?source_url=${encodeURIComponent(storySourceUrl)}&item_id=${encodeURIComponent(item.id)}`
+                      : `/api/download?url=${encodeURIComponent(
                       cleanItemUrl,
                     )}&filename=${encodeURIComponent(
                       itemFilename,
@@ -494,7 +799,7 @@ export default function Home() {
                             controls
                             playsInline
                             muted
-                            preload="auto"
+                            preload="none"
                           >
                             Your browser does not support
                             video playback.
@@ -524,6 +829,35 @@ export default function Home() {
                           </small>
                         </div>
 
+
+                        {storySourceUrl ? (
+                          <>
+                            <button
+                              type="button"
+                              className="story-download"
+                              disabled={Boolean(
+                                storyDownloadBusy[item.id]
+                              )}
+                              onClick={() => {
+                                void saveInstagramStory(
+                                  itemDownloadUrl,
+                                  itemFilename,
+                                  item.id,
+                                );
+                              }}
+                            >
+                              {storyDownloadBusy[item.id]
+                                ? "Downloading…"
+                                : "Download ↓"}
+                            </button>
+
+                            {storyDownloadErrors[item.id] && (
+                              <small role="alert">
+                                {storyDownloadErrors[item.id]}
+                              </small>
+                            )}
+                          </>
+                        ) : (
                         <a
                           className="story-download"
                           href={itemDownloadUrl}
@@ -532,6 +866,7 @@ export default function Home() {
                         >
                           Download ↓
                         </a>
+                        )}
                       </div>
                     </article>
                   );
@@ -553,7 +888,11 @@ export default function Home() {
                   "",
               ).toLowerCase();
 
+              const isYouTubePreview =
+                detected?.name === "YouTube";
+
               const isSingleImage =
+                isYouTubePreview ||
                 /^(?:jpe?g|png|webp|gif|avif)$/.test(
                   singleExt,
                 );

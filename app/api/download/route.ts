@@ -162,11 +162,37 @@ export async function GET(request: Request) {
         });
 
     if (!upstream.ok || !upstream.body) {
+      let instagramFailure = "";
+
+      if (shouldNormalizeInstagram) {
+        const failurePayload = await upstream
+          .json()
+          .catch(() => null);
+
+        const candidate = failurePayload?.error;
+
+        if (
+          typeof candidate === "string" &&
+          /^(instagram_normalize_failed|instagram_normalize_timeout|invalid_media_url|invalid_audio_url)$/.test(candidate)
+        ) {
+          instagramFailure = candidate;
+        }
+
+        console.warn("Instagram normalization failure:", {
+          upstreamStatus: upstream.status,
+          code:
+            instagramFailure ||
+            "upstream_non_media_response",
+        });
+      }
+
       return Response.json(
         {
           status: "error",
           error: {
-            code: "error.api.download.fetch",
+            code:
+              instagramFailure ||
+              "error.api.download.fetch",
           },
         },
         { status: 502 },

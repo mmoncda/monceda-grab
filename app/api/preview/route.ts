@@ -59,6 +59,122 @@ export async function GET(request: Request) {
 
     const range = request.headers.get("range");
 
+
+    /*
+     * IG-FIX-25A DIRECT INSTAGRAM PREVIEW
+     *
+     * Preview requests must not launch FFmpeg.
+     * Forward byte ranges directly to Instagram CDN.
+     * Full MP4 normalization remains download-only.
+     */
+    if (shouldNormalizeInstagram) {
+      const previewHeaders = new Headers({
+        Accept: "video/*,*/*;q=0.8",
+        Referer: "https://www.instagram.com/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+      });
+
+      if (range) {
+        previewHeaders.set("Range", range);
+      }
+
+      const cdnResponse = await fetch(mediaUrl, {
+        method: "GET",
+        headers: previewHeaders,
+        redirect: "manual",
+        cache: "no-store",
+        signal: request.signal,
+      });
+
+      if (
+        ![200, 206].includes(cdnResponse.status) ||
+        !cdnResponse.body
+      ) {
+        console.warn(
+          "Instagram preview CDN failure:",
+          cdnResponse.status,
+        );
+
+        return new Response(
+          "Instagram preview unavailable",
+          {
+            status:
+              cdnResponse.status === 416
+                ? 416
+                : 502,
+            headers: {
+              "Cache-Control": "private, no-store",
+            },
+          },
+        );
+      }
+
+      const upstreamType =
+        cdnResponse.headers.get("Content-Type") ||
+        "application/octet-stream";
+
+      const normalizedType = upstreamType
+        .split(";")[0]
+        .trim()
+        .toLowerCase();
+
+      const validMediaType =
+        normalizedType.startsWith("video/") ||
+        normalizedType === "application/octet-stream";
+
+      if (!validMediaType) {
+        await cdnResponse.body.cancel().catch(
+          () => undefined,
+        );
+
+        return new Response(
+          "Invalid Instagram preview media",
+          {
+            status: 502,
+            headers: {
+              "Cache-Control": "private, no-store",
+            },
+          },
+        );
+      }
+
+      const headers = new Headers();
+
+      headers.set(
+        "Content-Type",
+        normalizedType === "application/octet-stream"
+          ? "video/mp4"
+          : upstreamType,
+      );
+
+      for (const name of [
+        "Content-Length",
+        "Content-Range",
+        "Accept-Ranges",
+      ]) {
+        const value =
+          cdnResponse.headers.get(name);
+
+        if (value) {
+          headers.set(name, value);
+        }
+      }
+
+      headers.set(
+        "Cache-Control",
+        "private, no-store",
+      );
+
+      return new Response(
+        cdnResponse.body,
+        {
+          status: cdnResponse.status,
+          headers,
+        },
+      );
+    }
+
     const upstream = shouldNormalizeInstagram
       ? await fetch(
           "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/normalize",
