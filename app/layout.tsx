@@ -50,8 +50,8 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/favicon-v4.png",
+    shortcut: "/favicon-v4.png",
     apple: "/apple-touch-icon-v2.png",
   },
   other: {

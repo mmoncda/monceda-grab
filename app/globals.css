@@ -1491,3 +1491,48 @@ button:focus-visible,
     letter-spacing: .13em;
   }
 }
+
+/* ===== MONCEDA GRAB — FINAL IMAGE LOGO ===== */
+
+.brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand-mark {
+  position: relative;
+  width: 255px;
+  height: 64px;
+  flex: 0 0 255px;
+  margin: 0;
+  background:
+    url("/monceda-grab-logo-header.png")
+    left center / contain
+    no-repeat;
+  filter: none;
+  transform: none;
+}
+
+.brand-mark > * {
+  display: none !important;
+}
+
+.brand-mark::before,
+.brand-mark::after {
+  content: none !important;
+  display: none !important;
+}
+
+.brand-text {
+  display: none !important;
+}
+
+@media (max-width: 430px) {
+  .brand-mark {
+    width: 205px;
+    height: 52px;
+    flex: 0 0 205px;
+    margin: 0;
+    transform: none;
+  }
+}
