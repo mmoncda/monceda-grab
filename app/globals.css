@@ -1351,3 +1351,143 @@ button:focus-visible,
     margin-top: 0;
   }
 }
+
+/* ===== MONCEDA GRAB — ORIGINAL CLEAN M LOGO ===== */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.brand-mark {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  filter: none;
+  transform: none;
+}
+
+/* Left upper wing */
+.logo-wing-left {
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 25px;
+  height: 35px;
+  clip-path: polygon(
+    0 0,
+    100% 31%,
+    100% 67%,
+    57% 48%,
+    57% 100%,
+    0 78%
+  );
+  background: linear-gradient(
+    150deg,
+    #60a5fa 0%,
+    #2f80ff 42%,
+    #1557df 100%
+  );
+  box-shadow: none;
+}
+
+/* Right upper wing */
+.logo-wing-right {
+  position: absolute;
+  right: 0;
+  top: 1px;
+  width: 25px;
+  height: 35px;
+  clip-path: polygon(
+    100% 0,
+    0 31%,
+    0 67%,
+    43% 48%,
+    43% 100%,
+    100% 78%
+  );
+  background: linear-gradient(
+    210deg,
+    #60a5fa 0%,
+    #2f80ff 42%,
+    #1557df 100%
+  );
+  box-shadow: none;
+}
+
+/* Center lower stem */
+.logo-center {
+  position: absolute;
+  left: 15px;
+  bottom: 0;
+  width: 16px;
+  height: 27px;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 74%,
+    50% 100%,
+    0 74%
+  );
+  background: linear-gradient(
+    180deg,
+    #2378ff 0%,
+    #0758eb 100%
+  );
+  box-shadow: inset -4px 0 rgba(96, 165, 250, .22);
+}
+
+/* Fine divider detail from original mark */
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: 15px;
+  width: 1px;
+  height: 11px;
+  background: rgba(219, 234, 254, .48);
+  transform: rotate(32deg);
+  transform-origin: top;
+}
+
+/* Wordmark */
+.brand-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #f4f7fb;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  line-height: 1;
+}
+
+.brand-text em,
+.brand-text span:last-child {
+  color: #60a5fa;
+  font-style: normal;
+}
+
+/* Mobile: same logo, simply scaled down */
+@media (max-width: 430px) {
+  .brand {
+    gap: 9px;
+  }
+
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    transform: scale(.87);
+    transform-origin: left center;
+    margin-right: -4px;
+  }
+
+  .brand-text {
+    font-size: 13px;
+    gap: 5px;
+    letter-spacing: .13em;
+  }
+}
