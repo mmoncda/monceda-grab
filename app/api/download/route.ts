@@ -131,7 +131,10 @@ export async function GET(request: Request) {
 
     const upstream = shouldNormalizeInstagram
       ? await fetch(
-          "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/normalize",
+          `${(
+            process.env.MONCEDA_PROCESSOR_URL?.trim() ||
+            "https://story-fix---monceda-grab-fallback-cev7vd4azq-as.a.run.app"
+          ).replace(/\/+$/, "")}/instagram/normalize`,
           {
             method: "POST",
             headers: getProcessorAuthHeaders({
