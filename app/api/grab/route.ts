@@ -4,8 +4,14 @@ const COBALT_API = "https://monceda-grab-api-us.onrender.com/";
 const FALLBACK_API =
   "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/extract";
 
+const INSTAGRAM_STORY_PROCESSOR_BASE =
+  (
+    process.env.MONCEDA_PROCESSOR_URL?.trim() ||
+    "https://story-fix---monceda-grab-fallback-cev7vd4azq-as.a.run.app"
+  ).replace(/\/+$/, "");
+
 const INSTAGRAM_STORY_EXTRACT_API =
-  "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/story/extract";
+  `${INSTAGRAM_STORY_PROCESSOR_BASE}/instagram/story/extract`;
 
 const FACEBOOK_STORY_EXTRACT_API =
   "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/facebook/story/extract";
@@ -230,6 +236,37 @@ export async function POST(request: Request) {
           source_url: url,
         });
       }
+
+      console.warn("[Instagram extraction diagnostic]", {
+        upstreamStatus: fallbackResponse.status,
+        resultKeys: Object.keys(fallbackResult ?? {}),
+        processorReason: String(
+          fallbackResult?.reason ?? "No reason provided"
+        ).replace(/https?:\/\/\S+/g, "[URL]").slice(0, 1000),
+        errorMessage: String(
+          typeof fallbackResult?.error === "string"
+            ? fallbackResult.error
+            : (
+                fallbackResult?.error &&
+                typeof fallbackResult.error === "object" &&
+                "message" in fallbackResult.error
+                  ? fallbackResult.error.message
+                  : "No error message field"
+              )
+        ).replace(/https?:\/\/\S+/g, "[URL]").slice(0, 600),
+        contentType: fallbackResponse.headers.get("content-type"),
+        isStory: isInstagramStory(url),
+        resultStatus: fallbackResult?.status ?? null,
+        hasUrl: Boolean(fallbackResult?.url),
+        itemCount: fallbackItems.length,
+        pickerCount: Array.isArray(fallbackResult?.picker)
+          ? fallbackResult.picker.length : 0,
+        errorCode:
+          typeof fallbackResult?.error === "object" &&
+          fallbackResult.error !== null &&
+          "code" in fallbackResult.error
+            ? fallbackResult.error.code : null,
+      });
 
       return Response.json(
         {

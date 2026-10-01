@@ -1,7 +1,10 @@
 import { getProcessorAuthHeaders } from "../_processor-auth";
 
 const STORY_API =
-  "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/story/download";
+  `${(
+    process.env.MONCEDA_PROCESSOR_URL?.trim() ||
+    "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app"
+  ).replace(/\/+$/, "")}/instagram/story/download`;
 
 function isInstagramStory(value: string) {
   try {
