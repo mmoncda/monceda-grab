@@ -7,7 +7,7 @@ const FALLBACK_API =
 const INSTAGRAM_STORY_PROCESSOR_BASE =
   (
     process.env.MONCEDA_PROCESSOR_URL?.trim() ||
-    "https://story-fix---monceda-grab-fallback-cev7vd4azq-as.a.run.app"
+    "https://monceda-grab-fallback-cev7vd4azq-as.a.run.app"
   ).replace(/\/+$/, "");
 
 const INSTAGRAM_STORY_EXTRACT_API =

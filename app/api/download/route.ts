@@ -133,7 +133,7 @@ export async function GET(request: Request) {
       ? await fetch(
           `${(
             process.env.MONCEDA_PROCESSOR_URL?.trim() ||
-            "https://story-fix---monceda-grab-fallback-cev7vd4azq-as.a.run.app"
+            "https://monceda-grab-fallback-cev7vd4azq-as.a.run.app"
           ).replace(/\/+$/, "")}/instagram/normalize`,
           {
             method: "POST",

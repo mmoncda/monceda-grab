@@ -837,32 +837,13 @@ export default function Home() {
 
 
                         {storySourceUrl ? (
-                          <>
-                            <button
-                              type="button"
-                              className="story-download"
-                              disabled={Boolean(
-                                storyDownloadBusy[item.id]
-                              )}
-                              onClick={() => {
-                                void saveInstagramStory(
-                                  itemDownloadUrl,
-                                  itemFilename,
-                                  item.id,
-                                );
-                              }}
-                            >
-                              {storyDownloadBusy[item.id]
-                                ? "Downloading…"
-                                : "Download ↓"}
-                            </button>
-
-                            {storyDownloadErrors[item.id] && (
-                              <small role="alert">
-                                {storyDownloadErrors[item.id]}
-                              </small>
-                            )}
-                          </>
+                          <a
+                            className="story-download"
+                            href={itemDownloadUrl}
+                            rel="nofollow"
+                          >
+                            Download ↓
+                          </a>
                         ) : (
                         <a
                           className="story-download"
