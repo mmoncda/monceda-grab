@@ -19,3 +19,5 @@ processor/
 .youtube-processor-token.local
 .youtube-processor-token.y54
 .youtube-processor-token.*
+
+.secrets/
