@@ -1,4 +1,4 @@
-import { getProcessorAuthHeaders } from "../_processor-auth";
+import { getInstagramRegularProcessorAuthHeaders } from "../_processor-auth";
 
 function isAllowedPreviewUrl(value: string) {
   try {
@@ -67,7 +67,13 @@ export async function GET(request: Request) {
      * Forward byte ranges directly to Instagram CDN.
      * Full MP4 normalization remains download-only.
      */
-    if (shouldNormalizeInstagram) {
+    /*
+     * Regular Instagram Reel/video preview:
+     * use the dedicated regular Instagram processor below.
+     * Direct CDN preview is intentionally disabled because Instagram
+     * CDN responses are not reliable for browser playback.
+     */
+    if (false && shouldNormalizeInstagram) {
       const previewHeaders = new Headers({
         Accept: "video/*,*/*;q=0.8",
         Referer: "https://www.instagram.com/",
@@ -177,10 +183,13 @@ export async function GET(request: Request) {
 
     let upstream = shouldNormalizeInstagram
       ? await fetch(
-          "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/instagram/normalize",
+          `${(
+            process.env.MONCEDA_INSTAGRAM_REGULAR_PROCESSOR_URL?.trim() ||
+            "https://monceda-grab-fallback-cev7vd4azq-as.a.run.app"
+          ).replace(/\/+$/, "")}/instagram/normalize`,
           {
             method: "POST",
-            headers: getProcessorAuthHeaders({
+            headers: getInstagramRegularProcessorAuthHeaders({
               "Content-Type": "application/json",
               Accept: "video/mp4",
               ...(range ? { Range: range } : {}),

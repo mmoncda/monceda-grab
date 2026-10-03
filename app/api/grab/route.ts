@@ -1,4 +1,7 @@
-import { getProcessorAuthHeaders } from "../_processor-auth";
+import {
+  getInstagramRegularProcessorAuthHeaders,
+  getProcessorAuthHeaders,
+} from "../_processor-auth";
 
 const COBALT_API = "https://monceda-grab-api-us.onrender.com/";
 const FALLBACK_API =
@@ -199,10 +202,15 @@ export async function POST(request: Request) {
 
       const fallbackResponse = await fetch(instagramApi, {
         method: "POST",
-        headers: getProcessorAuthHeaders({
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        }),
+        headers: isInstagramStory(url)
+          ? getProcessorAuthHeaders({
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            })
+          : getInstagramRegularProcessorAuthHeaders({
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            }),
         body: JSON.stringify({ url }),
         redirect: "manual",
       });

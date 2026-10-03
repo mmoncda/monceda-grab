@@ -44,3 +44,22 @@ export function getYoutubeProcessorAuthHeaders(
 
   return nextHeaders;
 }
+
+export function getInstagramRegularProcessorAuthHeaders(
+  headers: Record<string, string> = {},
+) {
+  const token =
+    process.env.MONCEDA_INSTAGRAM_REGULAR_TOKEN?.trim();
+
+  if (!token) {
+    throw new Error(
+      "MONCEDA_INSTAGRAM_REGULAR_TOKEN is not configured",
+    );
+  }
+
+  return {
+    ...headers,
+    "X-Monceda-Processor-Token": token,
+  };
+}
+

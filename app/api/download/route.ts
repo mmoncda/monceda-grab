@@ -1,4 +1,4 @@
-import { getProcessorAuthHeaders } from "../_processor-auth";
+import { getInstagramRegularProcessorAuthHeaders } from "../_processor-auth";
 
 function isAllowedMediaUrl(value: string) {
   try {
@@ -132,12 +132,12 @@ export async function GET(request: Request) {
     const upstream = shouldNormalizeInstagram
       ? await fetch(
           `${(
-            process.env.MONCEDA_PROCESSOR_URL?.trim() ||
+            process.env.MONCEDA_INSTAGRAM_REGULAR_PROCESSOR_URL?.trim() ||
             "https://monceda-grab-fallback-cev7vd4azq-as.a.run.app"
           ).replace(/\/+$/, "")}/instagram/normalize`,
           {
             method: "POST",
-            headers: getProcessorAuthHeaders({
+            headers: getInstagramRegularProcessorAuthHeaders({
               "Content-Type": "application/json",
               Accept: "video/mp4",
             }),
