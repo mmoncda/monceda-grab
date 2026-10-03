@@ -4,6 +4,10 @@
   "account_id": "468826bcf6455dec7b094ad4bb34bcbc",
   "main": "vinext/server/fetch-handler",
   "compatibility_date": "2026-08-12",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env"
+  ],
   "routes": [
     {
       "pattern": "grab.moncedalabs.com",
