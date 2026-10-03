@@ -614,7 +614,7 @@ export default function Home() {
                       audioUrl.replace(/&amp;/g, "&"),
                     )}`
                   : ""
-              }&normalize=1`
+              }`
             : ""
         }`,
       );
