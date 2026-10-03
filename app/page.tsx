@@ -71,6 +71,7 @@ export default function Home() {
   const [youtubeDownloadError, setYoutubeDownloadError] =
     useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [singlePosterUrl, setSinglePosterUrl] = useState("");
   const [capturedPreview, setCapturedPreview] = useState("");
   const [posterUrl, setPosterUrl] = useState("");
   const [storyItems, setStoryItems] = useState<StoryItem[]>([]);
@@ -329,6 +330,7 @@ export default function Home() {
     setYoutubeDownloadDone(false);
     setYoutubeDownloadError("");
     setPreviewUrl("");
+    setSinglePosterUrl("");
     setCapturedPreview("");
     setPosterUrl("");
     setStoryItems([]);
@@ -443,6 +445,18 @@ export default function Home() {
         result.url ||
         result.picker?.[0]?.url ||
         firstMediaItem?.url;
+
+      const regularMediaThumbnail =
+        typeof result.thumbnail === "string" &&
+        result.thumbnail.trim()
+          ? result.thumbnail.trim()
+          : typeof result.picker?.[0]?.thumbnail === "string" &&
+              result.picker[0].thumbnail.trim()
+            ? result.picker[0].thumbnail.trim()
+            : typeof firstMediaItem?.thumbnail === "string" &&
+                firstMediaItem.thumbnail.trim()
+              ? firstMediaItem.thumbnail.trim()
+              : "";
 
       const audioUrl =
         typeof result.audio_url === "string"
@@ -603,6 +617,14 @@ export default function Home() {
               }&normalize=1`
             : ""
         }`,
+      );
+
+      setSinglePosterUrl(
+        regularMediaThumbnail
+          ? `/api/preview?url=${encodeURIComponent(
+              regularMediaThumbnail.replace(/&amp;/g, "&"),
+            )}`
+          : "",
       );
 
       setDownloadUrl(resolvedDownloadUrl);
@@ -949,6 +971,7 @@ export default function Home() {
 
                       <video
                       src={previewUrl}
+                      poster={singlePosterUrl || undefined}
                       controls
                       playsInline
                       muted

@@ -1,4 +1,5 @@
 import {
+  getInstagramRegularProcessorAuthHeaders,
   getProcessorAuthHeaders,
 } from "../_processor-auth";
 
@@ -11,9 +12,6 @@ const INSTAGRAM_PROCESSOR_BASE =
     process.env.MONCEDA_PROCESSOR_URL?.trim() ||
     "https://monceda-grab-fallback-cev7vd4azq-as.a.run.app"
   ).replace(/\/+$/, "");
-
-const INSTAGRAM_REGULAR_EXTRACT_API =
-  `${INSTAGRAM_PROCESSOR_BASE}/extract`;
 
 const INSTAGRAM_STORY_EXTRACT_API =
   `${INSTAGRAM_PROCESSOR_BASE}/instagram/story/extract`;
@@ -200,7 +198,7 @@ export async function POST(request: Request) {
       const instagramApi =
         isInstagramStory(url)
           ? INSTAGRAM_STORY_EXTRACT_API
-          : INSTAGRAM_REGULAR_EXTRACT_API;
+          : FALLBACK_API;
 
       const fallbackResponse = await fetch(instagramApi, {
         method: "POST",
@@ -209,7 +207,7 @@ export async function POST(request: Request) {
               "Content-Type": "application/json",
               Accept: "application/json",
             })
-          : getProcessorAuthHeaders({
+          : getInstagramRegularProcessorAuthHeaders({
               "Content-Type": "application/json",
               Accept: "application/json",
             }),
