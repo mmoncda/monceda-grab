@@ -1,3 +1,5 @@
+import { env } from "cloudflare:workers";
+
 const PROCESSOR_TOKEN_ENV = "MONCEDA_PROCESSOR_TOKEN";
 const PROCESSOR_TOKEN_HEADER = "X-Monceda-Processor-Token";
 
@@ -27,7 +29,7 @@ export function getYoutubeProcessorAuthHeaders(
   headers?: HeadersInit,
 ) {
   const token =
-    process.env.MONCEDA_YOUTUBE_PROCESSOR_TOKEN?.trim();
+    String(env.MONCEDA_YOUTUBE_PROCESSOR_TOKEN || "").trim();
 
   if (!token) {
     throw new Error(
@@ -49,7 +51,7 @@ export function getInstagramRegularProcessorAuthHeaders(
   headers: Record<string, string> = {},
 ) {
   const token =
-    process.env.MONCEDA_INSTAGRAM_REGULAR_TOKEN?.trim();
+    String(env.MONCEDA_INSTAGRAM_REGULAR_TOKEN || "").trim();
 
   if (!token) {
     throw new Error(
