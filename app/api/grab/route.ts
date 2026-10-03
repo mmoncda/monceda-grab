@@ -6,14 +6,17 @@ const COBALT_API = "https://monceda-grab-api-us.onrender.com/";
 const FALLBACK_API =
   "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/extract";
 
-const INSTAGRAM_STORY_PROCESSOR_BASE =
+const INSTAGRAM_PROCESSOR_BASE =
   (
     process.env.MONCEDA_PROCESSOR_URL?.trim() ||
     "https://monceda-grab-fallback-cev7vd4azq-as.a.run.app"
   ).replace(/\/+$/, "");
 
+const INSTAGRAM_REGULAR_EXTRACT_API =
+  `${INSTAGRAM_PROCESSOR_BASE}/extract`;
+
 const INSTAGRAM_STORY_EXTRACT_API =
-  `${INSTAGRAM_STORY_PROCESSOR_BASE}/instagram/story/extract`;
+  `${INSTAGRAM_PROCESSOR_BASE}/instagram/story/extract`;
 
 const FACEBOOK_STORY_EXTRACT_API =
   "https://monceda-grab-fallback-37436353153.asia-southeast1.run.app/facebook/story/extract";
@@ -197,7 +200,7 @@ export async function POST(request: Request) {
       const instagramApi =
         isInstagramStory(url)
           ? INSTAGRAM_STORY_EXTRACT_API
-          : FALLBACK_API;
+          : INSTAGRAM_REGULAR_EXTRACT_API;
 
       const fallbackResponse = await fetch(instagramApi, {
         method: "POST",
