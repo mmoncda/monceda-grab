@@ -1,4 +1,4 @@
-import { getInstagramRegularProcessorAuthHeaders } from "../_processor-auth";
+import { getProcessorAuthHeaders } from "../_processor-auth";
 
 function isAllowedMediaUrl(value: string) {
   try {
@@ -137,7 +137,7 @@ export async function GET(request: Request) {
           ).replace(/\/+$/, "")}/instagram/normalize`,
           {
             method: "POST",
-            headers: getInstagramRegularProcessorAuthHeaders({
+            headers: getProcessorAuthHeaders({
               "Content-Type": "application/json",
               Accept: "video/mp4",
             }),
