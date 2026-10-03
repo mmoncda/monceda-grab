@@ -1,5 +1,4 @@
 import {
-  getInstagramRegularProcessorAuthHeaders,
   getProcessorAuthHeaders,
 } from "../_processor-auth";
 
@@ -207,7 +206,7 @@ export async function POST(request: Request) {
               "Content-Type": "application/json",
               Accept: "application/json",
             })
-          : getInstagramRegularProcessorAuthHeaders({
+          : getProcessorAuthHeaders({
               "Content-Type": "application/json",
               Accept: "application/json",
             }),
