@@ -71,6 +71,8 @@ export default function Home() {
   const [youtubeDownloadError, setYoutubeDownloadError] =
     useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [capturedPreview, setCapturedPreview] = useState("");
+  const [posterUrl, setPosterUrl] = useState("");
   const [storyItems, setStoryItems] = useState<StoryItem[]>([]);
   const [storySourceUrl, setStorySourceUrl] = useState("");
   const [storyDownloadBusy, setStoryDownloadBusy] =
@@ -327,6 +329,8 @@ export default function Home() {
     setYoutubeDownloadDone(false);
     setYoutubeDownloadError("");
     setPreviewUrl("");
+    setCapturedPreview("");
+    setPosterUrl("");
     setStoryItems([]);
     setStorySourceUrl("");
     setStoryDownloadBusy({});
@@ -487,8 +491,25 @@ export default function Home() {
           },
         );
 
-        setStoryItems(validStoryItems);
-        setStorySourceUrl(isInstagramStory && validStoryItems.length > 0 ? url : "");
+        const isRegularInstagramReel =
+          detected?.name === "Instagram" &&
+          !isInstagramStory &&
+          /instagram\.com\/reels?\//i.test(url);
+
+        /*
+         * A regular Reel can return internal media components in
+         * result.items. They must not be treated as Story/carousel
+         * items, otherwise the single-video preview is suppressed.
+         */
+        if (!isRegularInstagramReel) {
+          setStoryItems(validStoryItems);
+        }
+
+        setStorySourceUrl(
+          isInstagramStory && validStoryItems.length > 0
+            ? url
+            : "",
+        );
       }
 
       const isInstagramReel =
@@ -571,7 +592,17 @@ export default function Home() {
       setPreviewUrl(
         `/api/preview?url=${encodeURIComponent(
           cleanPreviewUrl,
-        )}`,
+        )}${
+          detected?.name === "Instagram" && !isInstagramStory
+            ? `${
+                audioUrl
+                  ? `&audio_url=${encodeURIComponent(
+                      audioUrl.replace(/&amp;/g, "&"),
+                    )}`
+                  : ""
+              }&normalize=1`
+            : ""
+        }`,
       );
 
       setDownloadUrl(resolvedDownloadUrl);
@@ -892,24 +923,213 @@ export default function Home() {
                       alt={`${detected?.name || "Social"} media preview`}
                     />
                   ) : (
-                    <video
-                      src={
-                        detected?.name === "TikTok" ||
-                        detected?.name === "Facebook"
-                          ? `${previewUrl}#t=0.001`
-                          : previewUrl
-                      }
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    >
+                      {capturedPreview && (
+                        <img
+                          src={capturedPreview}
+                          alt="Video preview"
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                            zIndex: 2,
+                            pointerEvents: "none",
+                            background: "#000",
+                          }}
+                        />
+                      )}
+
+                      <video
+                      src={previewUrl}
                       controls
                       playsInline
-                      preload={
-                        detected?.name === "TikTok" ||
-                        detected?.name === "Facebook"
-                          ? "auto"
-                          : "metadata"
-                      }
+                      muted
+                      preload="auto"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                      onCanPlay={async (event) => {
+                        const video = event.currentTarget;
+
+                        if (
+                          video.dataset.previewReady === "1" ||
+                          video.dataset.previewWorking === "1"
+                        ) {
+                          return;
+                        }
+
+                        video.dataset.previewWorking = "1";
+
+                        try {
+                          if (
+                            Number.isFinite(video.duration) &&
+                            video.duration > 0
+                          ) {
+                            video.currentTime = Math.min(
+                              0.8,
+                              Math.max(
+                                0.3,
+                                video.duration * 0.02,
+                              ),
+                            );
+                          }
+
+                          await video.play();
+
+                          const capture = () => {
+                            try {
+                              if (
+                                !video.videoWidth ||
+                                !video.videoHeight
+                              ) {
+                                throw new Error(
+                                  "Video frame dimensions unavailable",
+                                );
+                              }
+
+                              const canvas =
+                                document.createElement("canvas");
+
+                              canvas.width = video.videoWidth;
+                              canvas.height = video.videoHeight;
+
+                              const ctx =
+                                canvas.getContext("2d");
+
+                              if (!ctx) {
+                                throw new Error(
+                                  "Canvas unavailable",
+                                );
+                              }
+
+                              ctx.drawImage(
+                                video,
+                                0,
+                                0,
+                                canvas.width,
+                                canvas.height,
+                              );
+
+                              const image =
+                                canvas.toDataURL(
+                                  "image/jpeg",
+                                  0.9,
+                                );
+
+                              const parent =
+                                video.parentElement;
+
+                              if (!parent) {
+                                throw new Error(
+                                  "Preview parent unavailable",
+                                );
+                              }
+
+                              parent.style.position =
+                                "relative";
+
+                              const old =
+                                parent.querySelector(
+                                  '[data-local-video-preview="1"]',
+                                );
+
+                              old?.remove();
+
+                              const img =
+                                document.createElement("img");
+
+                              img.src = image;
+                              img.alt = "Video preview";
+                              img.dataset.localVideoPreview =
+                                "1";
+
+                              Object.assign(
+                                img.style,
+                                {
+                                  position: "absolute",
+                                  inset: "0",
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "contain",
+                                  background: "#000",
+                                  zIndex: "5",
+                                  pointerEvents: "none",
+                                },
+                              );
+
+                              parent.appendChild(img);
+
+                              video.dataset.previewReady =
+                                "1";
+
+                              console.log(
+                                "[MONCEDA PREVIEW OK]",
+                                video.videoWidth,
+                                video.videoHeight,
+                                video.currentTime,
+                              );
+                            } catch (error) {
+                              console.error(
+                                "[MONCEDA PREVIEW FAILED]",
+                                error,
+                              );
+                            } finally {
+                              video.pause();
+                              video.dataset.previewWorking =
+                                "";
+                            }
+                          };
+
+                          if (
+                            "requestVideoFrameCallback" in video
+                          ) {
+                            video.requestVideoFrameCallback(
+                              () => capture(),
+                            );
+                          } else {
+                            window.setTimeout(
+                              capture,
+                              350,
+                            );
+                          }
+                        } catch (error) {
+                          video.dataset.previewWorking = "";
+
+                          console.error(
+                            "[MONCEDA PREVIEW PLAY FAILED]",
+                            error,
+                          );
+                        }
+                      }}
+                      onPlay={(event) => {
+                        const video = event.currentTarget;
+
+                        if (
+                          video.dataset.previewWorking === "1"
+                        ) {
+                          return;
+                        }
+
+                        video.parentElement
+                          ?.querySelector(
+                            '[data-local-video-preview="1"]',
+                          )
+                          ?.remove();
+                      }}
                     >
                       Your browser does not support video playback.
                     </video>
+                    </div>
                   )}
                 </div>
               );
