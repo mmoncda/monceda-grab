@@ -13,7 +13,16 @@ function isAllowedMediaUrl(value: string) {
         host === "video.twimg.com" ||
         host.endsWith(".fbcdn.net") ||
         host === "cdninstagram.com" ||
-        host.endsWith(".cdninstagram.com")
+        host.endsWith(".cdninstagram.com") ||
+        host === "monceda-grab-api-us.onrender.com" ||
+        host === "tiktok.com" ||
+        host.endsWith(".tiktok.com") ||
+        host === "tiktokcdn.com" ||
+        host.endsWith(".tiktokcdn.com") ||
+        host === "tiktokv.com" ||
+        host.endsWith(".tiktokv.com") ||
+        host === "byteoversea.com" ||
+        host.endsWith(".byteoversea.com")
       )
     );
   } catch {
@@ -48,6 +57,9 @@ export async function GET(request: Request) {
 
     const fastRemux =
       requestUrl.searchParams.get("fast_remux") === "1";
+
+    const forceDownload =
+      requestUrl.searchParams.get("force_download") === "1";
 
     const filename = sanitizeFilename(
       requestUrl.searchParams.get("filename") ||
@@ -206,9 +218,20 @@ export async function GET(request: Request) {
 
     headers.set(
       "Content-Type",
-      upstream.headers.get("Content-Type") ||
-        "video/mp4",
+      forceDownload
+        ? "application/octet-stream"
+        : (
+            upstream.headers.get("Content-Type") ||
+            "video/mp4"
+          ),
     );
+
+    if (forceDownload) {
+      headers.set(
+        "X-Content-Type-Options",
+        "nosniff",
+      );
+    }
 
     headers.set(
       "Content-Disposition",
