@@ -1050,14 +1050,6 @@ export default function Home() {
                       onCanPlay={async (event) => {
                         const video = event.currentTarget;
 
-                        /*
-                         * Prefer the real platform thumbnail when available.
-                         * Do not auto-play/seek/canvas-capture over a valid poster.
-                         */
-                        if (singlePosterUrl) {
-                          return;
-                        }
-
                         if (
                           video.dataset.previewReady === "1" ||
                           video.dataset.previewWorking === "1"
