@@ -1018,6 +1018,24 @@ export default function Home() {
                         height: "100%",
                       }}
                     >
+                      {!capturedPreview && singlePosterUrl && (
+                        <img
+                          src={singlePosterUrl}
+                          alt="Video preview"
+                          data-platform-poster="1"
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                            zIndex: 2,
+                            pointerEvents: "none",
+                            background: "#000",
+                          }}
+                        />
+                      )}
+
                       {capturedPreview && (
                         <img
                           src={capturedPreview}
@@ -1208,6 +1226,12 @@ export default function Home() {
                         ) {
                           return;
                         }
+
+                        video.parentElement
+                          ?.querySelector(
+                            '[data-platform-poster="1"]',
+                          )
+                          ?.remove();
 
                         video.parentElement
                           ?.querySelector(
