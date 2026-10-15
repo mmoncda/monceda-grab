@@ -739,17 +739,50 @@ export default function Home() {
                       : undefined
                   }
                   onClick={(event) => {
-                    if (detected?.name !== "YouTube") {
+                    if (detected?.name === "YouTube") {
+                      event.preventDefault();
+
+                      void saveYoutubeMedia(
+                        downloadUrl,
+                        downloadFilename ||
+                          "youtube-video.mp4",
+                      );
+
                       return;
                     }
 
-                    event.preventDefault();
+                    /*
+                     * UI feedback only for a regular Instagram Reel.
+                     * Stories, photos, carousels, API routes and the
+                     * existing download URL remain untouched.
+                     */
+                    const isInstagramReel =
+                      detected?.name === "Instagram" &&
+                      /instagram\.com\/reels?\//i.test(url);
 
-                    void saveYoutubeMedia(
-                      downloadUrl,
-                      downloadFilename ||
-                        "youtube-video.mp4",
-                    );
+                    if (!isInstagramReel) {
+                      return;
+                    }
+
+                    const button = event.currentTarget;
+
+                    if (
+                      button.dataset.downloadRequested === "1"
+                    ) {
+                      event.preventDefault();
+                      return;
+                    }
+
+                    /*
+                     * Do not preventDefault on the first click.
+                     * The original working href download proceeds.
+                     */
+                    button.dataset.downloadRequested = "1";
+                    button.textContent =
+                      "Download requested — please wait…";
+                    button.setAttribute("aria-busy", "true");
+                    button.style.cursor = "wait";
+                    button.style.opacity = "0.75";
                   }}
                 >
                   {detected?.name === "YouTube"
