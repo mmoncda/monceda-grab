@@ -634,10 +634,25 @@ export default function Home() {
           ? result.items.length
           : 0;
 
+      const resultTitle =
+        typeof result.title === "string"
+          ? result.title.trim()
+          : "";
+
+      const resultDescription =
+        typeof result.description === "string"
+          ? result.description.trim()
+          : "";
+
+      const displayTitle =
+        resultTitle || resultDescription;
+
       setMessage(
         detectedItemCount > 1
           ? `${detectedItemCount} ${detected?.name} media items are ready.`
-          : `${detected?.name} media is ready.`,
+          : displayTitle
+            ? `${displayTitle} — is ready to download.`
+            : `${detected?.name} media is ready.`,
       );
     } catch (error) {
       setMessage(

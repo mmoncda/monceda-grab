@@ -126,6 +126,16 @@ function isVimeo(value: string) {
   );
 }
 
+function isTikTok(value: string) {
+  const host = getHost(value);
+
+  return (
+    host === "tiktok.com" ||
+    host === "vm.tiktok.com" ||
+    host === "vt.tiktok.com"
+  );
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -401,6 +411,68 @@ export async function POST(request: Request) {
         },
         { status: 422 },
       );
+    }
+
+    /*
+     * TikTok:
+     * Keep Cobalt as the working media/download source.
+     * Ask the existing yt-dlp processor only for metadata,
+     * then merge safe text fields into the response.
+     *
+     * If metadata lookup fails, the original Cobalt response
+     * is returned unchanged.
+     */
+    if (isTikTok(url)) {
+      try {
+        const metadataResponse = await fetch(FALLBACK_API, {
+          method: "POST",
+          headers: getInstagramRegularProcessorAuthHeaders({
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          }),
+          body: JSON.stringify({ url }),
+          redirect: "manual",
+        });
+
+        const metadataResult: ApiResult | null =
+          await metadataResponse
+            .json()
+            .catch(() => null);
+
+        if (
+          metadataResponse.ok &&
+          metadataResult?.status === "ok"
+        ) {
+          const title =
+            typeof metadataResult.title === "string"
+              ? metadataResult.title.trim()
+              : "";
+
+          const description =
+            typeof metadataResult.description === "string"
+              ? metadataResult.description.trim()
+              : "";
+
+          const uploader =
+            typeof metadataResult.uploader === "string"
+              ? metadataResult.uploader.trim()
+              : "";
+
+          return Response.json({
+            ...cobaltResult,
+            ...(title ? { title } : {}),
+            ...(description ? { description } : {}),
+            ...(uploader ? { uploader } : {}),
+          });
+        }
+      } catch (error) {
+        console.warn(
+          "[TikTok metadata enrichment failed]",
+          error instanceof Error
+            ? error.message
+            : "unknown error",
+        );
+      }
     }
 
     return Response.json(cobaltResult);
