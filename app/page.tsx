@@ -644,8 +644,21 @@ export default function Home() {
           ? result.description.trim()
           : "";
 
+      const resultCaption =
+        typeof result.caption === "string"
+          ? result.caption.trim()
+          : "";
+
+      const resultText =
+        typeof result.text === "string"
+          ? result.text.trim()
+          : "";
+
       const displayTitle =
-        resultTitle || resultDescription;
+        resultTitle ||
+        resultDescription ||
+        resultCaption ||
+        resultText;
 
       setMessage(
         detectedItemCount > 1
