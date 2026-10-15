@@ -654,11 +654,16 @@ export default function Home() {
           ? result.text.trim()
           : "";
 
+      const genericTitle =
+        /^video by\s+/i.test(resultTitle) ||
+        /^instagram video/i.test(resultTitle) ||
+        /^tiktok video #/i.test(resultTitle);
+
       const displayTitle =
-        resultTitle ||
         resultDescription ||
         resultCaption ||
-        resultText;
+        resultText ||
+        (!genericTitle ? resultTitle : "");
 
       setMessage(
         detectedItemCount > 1
