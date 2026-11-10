@@ -325,6 +325,28 @@ export async function POST(request: Request) {
     }
 
     if (!cobaltResponse.ok || cobaltResult?.status === "error") {
+      // Retry failed TikTok extraction with the existing media processor.
+      if (isTikTok(url)) {
+        try {
+          const response = await fetch(FALLBACK_API, {
+            method: "POST",
+            headers: getInstagramRegularProcessorAuthHeaders({
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            }),
+            body: JSON.stringify({ url }),
+            redirect: "manual",
+          });
+          if (response.ok) {
+            const media: ApiResult = await response.json();
+            if (media?.status === "ok" && typeof media.url === "string" && media.url.startsWith("https://")) {
+              return Response.json({ ...media, fallback: true });
+            }
+          }
+        } catch {
+          // Continue to the original error response.
+        }
+      }
       if (isVimeo(url)) {
         return Response.json(
           {
