@@ -59,7 +59,7 @@ function LinkIcon() {
   );
 }
 
-function FacebookReelPreview({ source, filename }: { source: string; filename: string }) {
+function FacebookReelResult({ source, filename, title }: { source: string; filename: string; title: string }) {
   const [media, setMedia] = useState("");
   const [status, setStatus] = useState("Preparing MP4…");
   const [failed, setFailed] = useState(false);
@@ -131,18 +131,27 @@ function FacebookReelPreview({ source, filename }: { source: string; filename: s
     };
   }, [source, filename, attempt]);
 
-  return <div style={{ color: "#fff", padding: 12 }}>
-    {media && <video src={media + "#t=0.1"} controls playsInline preload="auto"
-      aria-label="Facebook Reel preview"
-      onError={() => setStatus("This browser could not play the preview. The MP4 is available below.")} />}
-    {status && <p role="status">{status}</p>}
-    {media ? <a className="download-link" href={media} download={filename}>Download MP4 ↓</a>
-      : failed ? <button type="button" onClick={() => setAttempt(n => n + 1)}>Retry preview</button>
-      : <button type="button" disabled={queued} onClick={() => {
-        pendingSave.current = true;
-        setQueued(true);
-      }}>{queued ? "Download queued — waiting for MP4…" : "Download when ready ↓"}</button>}
-  </div>;
+  return <>
+    <div className="status success">
+      <span>{title}</span>{" "}
+      {media ? (
+        <a className="download-link" href={media} download={filename}>Download media ↓</a>
+      ) : failed ? (
+        <button className="download-link" type="button" onClick={() => setAttempt(n => n + 1)}>Retry preview</button>
+      ) : (
+        <button className="download-link" type="button" disabled={queued} onClick={() => {
+          pendingSave.current = true;
+          setQueued(true);
+        }}>{queued ? "Download queued…" : "Download media ↓"}</button>
+      )}
+    </div>
+    <div className="video-preview" style={{ color: "#fff" }}>
+      {media && <video src={media + "#t=0.1"} controls playsInline preload="auto"
+        aria-label="Facebook Reel preview"
+        onError={() => setStatus("This browser could not play the preview. Use Download media above.")} />}
+      {status && <p role="status">{status}</p>}
+    </div>
+  </>;
 }
 
 export default function Home() {
@@ -760,7 +769,7 @@ export default function Home() {
         (!genericTitle ? resultTitle : "");
 
       setMessage(
-        facebookReel ? "Facebook Reel found." : detectedItemCount > 1
+        facebookReel ? (resultTitle || displayTitle || "Facebook Reel") : detectedItemCount > 1
           ? `${detectedItemCount} ${detected?.name} media items are ready.`
           : displayTitle
             ? `${displayTitle} — is ready to download.`
@@ -846,7 +855,11 @@ export default function Home() {
             />
             <span>I own this content, it is public domain, or I have explicit permission or another lawful right to download it. I agree to the <a href="#terms">Terms of Use</a>.</span>
           </label>
-          {message && (
+          {facebookPreview && downloadUrl && (
+            <FacebookReelResult key={downloadUrl} source={downloadUrl}
+              filename={downloadFilename || "facebook-reel.mp4"} title={message} />
+          )}
+          {message && !facebookPreview && (
             <div
               className={downloadUrl ? "status success" : "status"}
               role="status"
@@ -1075,7 +1088,7 @@ export default function Home() {
             </section>
           )}
 
-          {storyItems.length <= 1 &&
+          {!facebookPreview && storyItems.length <= 1 &&
             downloadUrl &&
             previewUrl && (() => {
               const singleItem = storyItems[0];
@@ -1099,9 +1112,7 @@ export default function Home() {
 
               return (
                 <div className="video-preview">
-                  {facebookPreview ? (
-                    <FacebookReelPreview key={downloadUrl} source={downloadUrl} filename={downloadFilename || "facebook-reel.mp4"} />
-                  ) : isSingleImage ? (
+                  {isSingleImage ? (
                     <img
                       src={previewUrl}
                       alt={`${detected?.name || "Social"} media preview`}
