@@ -138,12 +138,15 @@ export async function GET(request: Request) {
       imageExtensions.has(filenameExtension) ||
       imageExtensions.has(mediaPathExtension);
 
+    const facebookReel = requestUrl.searchParams.get("facebook_reel") === "1" &&
+      (mediaHost === "fbcdn.net" || mediaHost.endsWith(".fbcdn.net") || isInstagramMedia);
     const shouldNormalizeInstagram =
-      isInstagramMedia && !isImageMedia;
+      (isInstagramMedia || facebookReel) && !isImageMedia;
 
     const upstream = shouldNormalizeInstagram
       ? await fetch(
           `${(
+            facebookReel ? "https://reel-e349a283---monceda-grab-fallback-cev7vd4azq-as.a.run.app" :
             process.env.MONCEDA_INSTAGRAM_REGULAR_PROCESSOR_URL?.trim() ||
             "https://monceda-grab-fallback-cev7vd4azq-as.a.run.app"
           ).replace(/\/+$/, "")}/instagram/normalize`,
@@ -155,6 +158,7 @@ export async function GET(request: Request) {
             }),
             body: JSON.stringify({
               url: mediaUrl,
+              ...(facebookReel ? { facebook_reel: true } : {}),
               ...(audioUrl
                 ? { audio_url: audioUrl }
                 : {}),

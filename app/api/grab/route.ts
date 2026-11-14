@@ -210,7 +210,7 @@ export async function POST(request: Request) {
           ? INSTAGRAM_STORY_EXTRACT_API
           : FALLBACK_API;
 
-      const fallbackResponse = await fetch(instagramApi, {
+      const instagramRequest: RequestInit = {
         method: "POST",
         headers: isInstagramStory(url)
           ? getProcessorAuthHeaders({
@@ -223,7 +223,16 @@ export async function POST(request: Request) {
             }),
         body: JSON.stringify({ url }),
         redirect: "manual",
-      });
+      };
+
+      let fallbackResponse = await fetch(instagramApi, instagramRequest);
+      if (fallbackResponse.status === 422 && /^\/p\/[A-Za-z0-9_-]+\/?$/i.test(new URL(url).pathname)) {
+        await fallbackResponse.body?.cancel();
+        fallbackResponse = await fetch(
+          "https://igphoto-98f7c9a---monceda-grab-fallback-cev7vd4azq-as.a.run.app/extract",
+          instagramRequest,
+        );
+      }
 
       let fallbackResult: ApiResult | null = null;
 
@@ -302,6 +311,27 @@ export async function POST(request: Request) {
     /*
      * Other supported platforms continue using Cobalt.
      */
+    const reel = new URL(url);
+    const isFacebookReel = reel.protocol === "https:" &&
+      ["facebook.com", "m.facebook.com"].includes(getHost(url)) &&
+      /^\/reel\/\d+\/?$/.test(reel.pathname);
+    if (isFacebookReel) {
+      const response = await fetch("https://reel-e349a283---monceda-grab-fallback-cev7vd4azq-as.a.run.app/extract", {
+        method: "POST",
+        headers: getInstagramRegularProcessorAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ url }),
+        redirect: "manual",
+      });
+      if (response.ok) {
+        const media: ApiResult = await response.json();
+        if (media.status === "ok" && typeof media.url === "string" && media.url.startsWith("https://")) {
+          return Response.json({ ...media, fallback: true });
+        }
+      }
+      return Response.json({ status: "error", error: { code: "error.api.fetch.fail" } },
+        { status: response.ok ? 502 : response.status });
+    }
+
     const cobaltResponse = await fetch(COBALT_API, {
       method: "POST",
       headers: {
@@ -325,7 +355,6 @@ export async function POST(request: Request) {
     }
 
     if (!cobaltResponse.ok || cobaltResult?.status === "error") {
-      // Retry failed TikTok extraction with the existing media processor.
       if (isTikTok(url)) {
         try {
           const response = await fetch(FALLBACK_API, {

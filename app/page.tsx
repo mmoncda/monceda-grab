@@ -577,7 +577,10 @@ export default function Home() {
 
       setDownloadFilename(safeFilename);
 
+      const facebookReel = detected?.name === "Facebook" && result.fallback === true &&
+        /^\/reel\/\d+\/?$/.test(new URL(url).pathname);
       const shouldProxyDownload =
+        facebookReel ||
         detected?.name === "Snapchat" ||
         detected?.name === "X / Twitter" ||
         detected?.name === "Instagram" ||
@@ -591,8 +594,8 @@ export default function Home() {
                 String(mediaUrl).replace(/&amp;/g, "&"),
               )}&filename=${encodeURIComponent(
                 safeFilename,
-              )}${
-                detected?.name === "Instagram" && audioUrl
+              )}${facebookReel ? "&facebook_reel=1" : ""}${
+                (detected?.name === "Instagram" || facebookReel) && audioUrl
                   ? `&audio_url=${encodeURIComponent(
                       audioUrl.replace(/&amp;/g, "&"),
                     )}`
@@ -607,7 +610,9 @@ export default function Home() {
         `/api/preview?url=${encodeURIComponent(
           cleanPreviewUrl,
         )}${
-          detected?.name === "Instagram" && !isInstagramStory
+          facebookReel
+            ? `&facebook_reel=1${audioUrl ? `&audio_url=${encodeURIComponent(audioUrl.replace(/&amp;/g, "&"))}` : ""}`
+            : detected?.name === "Instagram" && !isInstagramStory
             ? `${
                 audioUrl
                   ? `&audio_url=${encodeURIComponent(
