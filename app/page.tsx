@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AdSlot } from "./ad-slot";
 import Link from "next/link";
 
@@ -59,6 +59,44 @@ function LinkIcon() {
   );
 }
 
+function FacebookReelPreview({ source }: { source: string }) {
+  const [media, setMedia] = useState("");
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let objectUrl = "";
+    setMedia("");
+    setFailed(false);
+
+    async function load() {
+      const response = await fetch(source, { signal: controller.signal });
+      if (!response.ok || !response.headers.get("content-type")?.startsWith("video/")) {
+        throw new Error("Preview unavailable");
+      }
+      const blob = await response.blob();
+      if (controller.signal.aborted) return;
+      objectUrl = URL.createObjectURL(blob);
+      setMedia(objectUrl);
+    }
+
+    load().catch(() => {
+      if (!controller.signal.aborted) setFailed(true);
+    });
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [source, attempt]);
+
+  if (failed) return <p role="status">Preview unavailable. <button type="button"
+    onClick={() => setAttempt(value => value + 1)}>Retry preview</button></p>;
+  if (!media) return <p role="status">Preparing video preview…</p>;
+  return <video src={media + "#t=0.1"} controls playsInline preload="auto"
+    aria-label="Facebook Reel preview" onError={() => setFailed(true)} />;
+}
+
 export default function Home() {
   const [url, setUrl] = useState("");
   const [message, setMessage] = useState("");
@@ -70,6 +108,7 @@ export default function Home() {
     useState(false);
   const [youtubeDownloadError, setYoutubeDownloadError] =
     useState("");
+  const [facebookPreview, setFacebookPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [singlePosterUrl, setSinglePosterUrl] = useState("");
   const [capturedPreview, setCapturedPreview] = useState("");
@@ -329,6 +368,7 @@ export default function Home() {
     setYoutubeDownloadBusy(false);
     setYoutubeDownloadDone(false);
     setYoutubeDownloadError("");
+    setFacebookPreview(false);
     setPreviewUrl("");
     setSinglePosterUrl("");
     setCapturedPreview("");
@@ -632,6 +672,7 @@ export default function Home() {
           : "",
       );
 
+      setFacebookPreview(facebookReel);
       setDownloadUrl(resolvedDownloadUrl);
 
       const detectedItemCount =
@@ -1010,7 +1051,9 @@ export default function Home() {
 
               return (
                 <div className="video-preview">
-                  {isSingleImage ? (
+                  {facebookPreview ? (
+                    <FacebookReelPreview key={downloadUrl} source={downloadUrl} />
+                  ) : isSingleImage ? (
                     <img
                       src={previewUrl}
                       alt={`${detected?.name || "Social"} media preview`}
