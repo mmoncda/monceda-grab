@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AdSlot } from "./ad-slot";
 import Link from "next/link";
 
@@ -59,42 +59,90 @@ function LinkIcon() {
   );
 }
 
-function FacebookReelPreview({ source }: { source: string }) {
+function FacebookReelPreview({ source, filename }: { source: string; filename: string }) {
   const [media, setMedia] = useState("");
+  const [status, setStatus] = useState("Preparing MP4…");
   const [failed, setFailed] = useState(false);
+  const [queued, setQueued] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const pendingSave = useRef(false);
 
   useEffect(() => {
     const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 240000);
+    let active = true;
     let objectUrl = "";
     setMedia("");
     setFailed(false);
+    setStatus("Preparing MP4…");
 
     async function load() {
       const response = await fetch(source, { signal: controller.signal });
-      if (!response.ok || !response.headers.get("content-type")?.startsWith("video/")) {
-        throw new Error("Preview unavailable");
+      if (!response.ok || !response.body ||
+          !response.headers.get("content-type")?.startsWith("video/")) {
+        throw new Error("Video unavailable");
       }
-      const blob = await response.blob();
-      if (controller.signal.aborted) return;
-      objectUrl = URL.createObjectURL(blob);
+      const reader = response.body.getReader();
+      const chunks: ArrayBuffer[] = [];
+      const total = Number(response.headers.get("content-length"));
+      let bytes = 0;
+      let lastUpdate = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value.slice().buffer);
+        bytes += value.byteLength;
+        if (active && Date.now() - lastUpdate > 200) {
+          lastUpdate = Date.now();
+          setStatus(total > 0
+            ? `Loading video… ${Math.min(99, Math.floor(bytes * 100 / total))}%`
+            : `Loading video… ${(bytes / 1048576).toFixed(1)} MB`);
+        }
+      }
+      if (!active) return;
+      if (!bytes || (total > 0 && total !== bytes)) throw new Error("Incomplete video");
+      objectUrl = URL.createObjectURL(new Blob(chunks, { type: "video/mp4" }));
       setMedia(objectUrl);
+      setStatus("");
+      if (pendingSave.current) {
+        pendingSave.current = false;
+        setQueued(false);
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
     }
 
     load().catch(() => {
-      if (!controller.signal.aborted) setFailed(true);
-    });
+      if (!active) return;
+      pendingSave.current = false;
+      setQueued(false);
+      setFailed(true);
+      setStatus("The video could not be prepared.");
+    }).finally(() => window.clearTimeout(timeout));
     return () => {
+      active = false;
+      window.clearTimeout(timeout);
       controller.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [source, attempt]);
+  }, [source, filename, attempt]);
 
-  if (failed) return <p role="status">Preview unavailable. <button type="button"
-    onClick={() => setAttempt(value => value + 1)}>Retry preview</button></p>;
-  if (!media) return <p role="status">Preparing video preview…</p>;
-  return <video src={media + "#t=0.1"} controls playsInline preload="auto"
-    aria-label="Facebook Reel preview" onError={() => setFailed(true)} />;
+  return <div style={{ color: "#fff", padding: 12 }}>
+    {media && <video src={media + "#t=0.1"} controls playsInline preload="auto"
+      aria-label="Facebook Reel preview"
+      onError={() => setStatus("This browser could not play the preview. The MP4 is available below.")} />}
+    {status && <p role="status">{status}</p>}
+    {media ? <a className="download-link" href={media} download={filename}>Download MP4 ↓</a>
+      : failed ? <button type="button" onClick={() => setAttempt(n => n + 1)}>Retry preview</button>
+      : <button type="button" disabled={queued} onClick={() => {
+        pendingSave.current = true;
+        setQueued(true);
+      }}>{queued ? "Download queued — waiting for MP4…" : "Download when ready ↓"}</button>}
+  </div>;
 }
 
 export default function Home() {
@@ -712,7 +760,7 @@ export default function Home() {
         (!genericTitle ? resultTitle : "");
 
       setMessage(
-        detectedItemCount > 1
+        facebookReel ? "Facebook Reel found." : detectedItemCount > 1
           ? `${detectedItemCount} ${detected?.name} media items are ready.`
           : displayTitle
             ? `${displayTitle} — is ready to download.`
@@ -805,7 +853,7 @@ export default function Home() {
             >
               {message}
 
-              {downloadUrl && storyItems.length <= 1 && (
+              {downloadUrl && !facebookPreview && storyItems.length <= 1 && (
                 <> <a
                   className="download-link"
                   href={downloadUrl}
@@ -1052,7 +1100,7 @@ export default function Home() {
               return (
                 <div className="video-preview">
                   {facebookPreview ? (
-                    <FacebookReelPreview key={downloadUrl} source={downloadUrl} />
+                    <FacebookReelPreview key={downloadUrl} source={downloadUrl} filename={downloadFilename || "facebook-reel.mp4"} />
                   ) : isSingleImage ? (
                     <img
                       src={previewUrl}
