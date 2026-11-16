@@ -678,6 +678,7 @@ export default function Home() {
         /^\/reel\/\d+\/?$/.test(new URL(url).pathname);
       const shouldProxyDownload =
         facebookReel ||
+        (detected?.name === "TikTok" && /^https:\/\//i.test(String(mediaUrl))) ||
         detected?.name === "Snapchat" ||
         detected?.name === "X / Twitter" ||
         detected?.name === "Instagram" ||
@@ -685,7 +686,9 @@ export default function Home() {
 
       const resolvedDownloadUrl =
         isInstagramStory
-          ? `/api/instagram-story-download?url=${encodeURIComponent(url)}`
+          ? (result.items?.length === 1 && typeof result.items[0]?.id === "string"
+              ? `/api/instagram-story-item-download?source_url=${encodeURIComponent(url)}&item_id=${encodeURIComponent(result.items[0].id)}`
+              : `/api/instagram-story-download?url=${encodeURIComponent(url)}`)
           : shouldProxyDownload
             ? `/api/download?url=${encodeURIComponent(
                 String(mediaUrl).replace(/&amp;/g, "&"),
@@ -769,7 +772,11 @@ export default function Home() {
         (!genericTitle ? resultTitle : "");
 
       setMessage(
-        facebookReel ? (resultTitle || displayTitle || "Facebook Reel") : detectedItemCount > 1
+        isInstagramStory && typeof result.story_total === "number" && detectedItemCount < result.story_total
+          ? `Showing ${detectedItemCount} of ${result.story_total} active Stories. Some media could not be retrieved.`
+          : isInstagramStory && result.story_total === null
+          ? "Story media found. The full active Story list could not be verified."
+          : facebookReel ? (resultTitle || displayTitle || "Facebook Reel") : detectedItemCount > 1
           ? `${detectedItemCount} ${detected?.name} media items are ready.`
           : displayTitle
             ? `${displayTitle} — is ready to download.`
