@@ -146,7 +146,7 @@ function FacebookReelResult({ source, filename, title }: { source: string; filen
       )}
     </div>
     <div className="video-preview" style={{ color: "#fff" }}>
-      {media && <video src={media + "#t=0.1"} controls playsInline preload="auto"
+      {media && <video src={media} controls playsInline preload="auto"
         aria-label="Facebook Reel preview"
         onError={() => setStatus("This browser could not play the preview. Use Download media above.")} />}
       {status && <p role="status">{status}</p>}
