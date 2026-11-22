@@ -154,6 +154,90 @@ function FacebookReelResult({ source, filename, title }: { source: string; filen
   </>;
 }
 
+// Mobile Facebook app share links only. The existing Mac/desktop Reel player
+// remains unchanged. Preview uses native video loading rather than buffering
+// the entire MP4 in JavaScript. Download remains a separate native navigation.
+function MobileFacebookShareReelResult({
+  source,
+  previewSource,
+  filename,
+  title,
+}: {
+  source: string;
+  previewSource: string;
+  filename: string;
+  title: string;
+}) {
+  const [previewMode, setPreviewMode] = useState<"merged" | "video-only" | "failed">("merged");
+  const [loading, setLoading] = useState(true);
+  const [downloadTapped, setDownloadTapped] = useState(false);
+
+  // A Facebook Reel may have separate video/audio CDN URLs. If merged preview
+  // playback fails, try video-only as a visual fallback; downloads retain audio.
+  const videoOnlySource = useMemo(() => {
+    try {
+      const parsed = new URL(previewSource, "https://grab.moncedalabs.com");
+      if (parsed.pathname !== "/api/preview") return previewSource;
+      parsed.searchParams.delete("facebook_reel");
+      parsed.searchParams.delete("audio_url");
+      return parsed.pathname + parsed.search;
+    } catch {
+      return previewSource;
+    }
+  }, [previewSource]);
+
+  useEffect(() => {
+    if (previewMode !== "merged" || !loading || videoOnlySource === previewSource) return;
+    const fallback = window.setTimeout(() => {
+      setPreviewMode("video-only");
+      setLoading(true);
+    }, 20000);
+    return () => window.clearTimeout(fallback);
+  }, [previewMode, loading, previewSource, videoOnlySource]);
+
+  return <>
+    <div className="status success">
+      <span>{title}</span>{" "}
+      <a className="download-link" href={source} download={filename}
+        rel="nofollow" onClick={() => setDownloadTapped(true)}>
+        Download media ↓
+      </a>
+      {downloadTapped && (
+        <span role="status"> Check your browser Downloads if no prompt appears.</span>
+      )}
+    </div>
+    <div className="video-preview" style={{ color: "#fff" }}>
+      {previewMode !== "failed" && (
+        <video
+          key={previewMode + previewSource}
+          src={previewMode === "merged" ? previewSource : videoOnlySource}
+          controls
+          playsInline
+          preload="metadata"
+          aria-label="Facebook Share Reel preview"
+          onLoadedMetadata={() => setLoading(false)}
+          onError={() => {
+            if (previewMode === "merged" && videoOnlySource !== previewSource) {
+              setPreviewMode("video-only");
+              setLoading(true);
+            } else {
+              setPreviewMode("failed");
+              setLoading(false);
+            }
+          }}
+        />
+      )}
+      {loading && previewMode !== "failed" && <p role="status">Loading preview…</p>}
+      {previewMode === "video-only" && !loading && (
+        <p role="status">Video-only preview; the downloaded MP4 includes audio when available.</p>
+      )}
+      {previewMode === "failed" && (
+        <p role="status">Preview unavailable on this device. Try Download media above.</p>
+      )}
+    </div>
+  </>;
+}
+
 export default function Home() {
   const [url, setUrl] = useState("");
   const [message, setMessage] = useState("");
@@ -166,6 +250,7 @@ export default function Home() {
   const [youtubeDownloadError, setYoutubeDownloadError] =
     useState("");
   const [facebookPreview, setFacebookPreview] = useState(false);
+  const [mobileShareReel, setMobileShareReel] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [singlePosterUrl, setSinglePosterUrl] = useState("");
   const [capturedPreview, setCapturedPreview] = useState("");
@@ -733,6 +818,13 @@ export default function Home() {
       );
 
       setFacebookPreview(facebookReel);
+      // Only Facebook app /share/r/ Reels on a phone use native preview/download.
+      setMobileShareReel(
+        facebookReel &&
+        /^\/share\/r\/[A-Za-z0-9_-]+\/?$/.test(new URL(url).pathname) &&
+        (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+          (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1))
+      );
       setDownloadUrl(resolvedDownloadUrl);
 
       const detectedItemCount =
@@ -863,8 +955,14 @@ export default function Home() {
             <span>I own this content, it is public domain, or I have explicit permission or another lawful right to download it. I agree to the <a href="#terms">Terms of Use</a>.</span>
           </label>
           {facebookPreview && downloadUrl && (
-            <FacebookReelResult key={downloadUrl} source={downloadUrl}
-              filename={downloadFilename || "facebook-reel.mp4"} title={message} />
+            mobileShareReel ? (
+              <MobileFacebookShareReelResult key={downloadUrl} source={downloadUrl}
+                previewSource={previewUrl}
+                filename={downloadFilename || "facebook-reel.mp4"} title={message} />
+            ) : (
+              <FacebookReelResult key={downloadUrl} source={downloadUrl}
+                filename={downloadFilename || "facebook-reel.mp4"} title={message} />
+            )
           )}
           {message && !facebookPreview && (
             <div
