@@ -373,7 +373,7 @@ export async function POST(request: Request) {
       if (response.ok) {
         const media: ApiResult = await response.json();
         if (media.status === "ok" && typeof media.url === "string" && media.url.startsWith("https://")) {
-          return Response.json({ ...media, fallback: true });
+          return Response.json({ ...media, fallback: true, facebook_reel: true });
         }
       }
       return Response.json({ status: "error", error: { code: "error.api.fetch.fail" } },

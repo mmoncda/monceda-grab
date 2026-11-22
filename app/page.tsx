@@ -674,8 +674,10 @@ export default function Home() {
 
       setDownloadFilename(safeFilename);
 
-      const facebookReel = detected?.name === "Facebook" && result.fallback === true &&
-        /^\/reel\/\d+\/?$/.test(new URL(url).pathname);
+      const facebookReel =
+        detected?.name === "Facebook" &&
+        result.fallback === true &&
+        result.facebook_reel === true;
       const shouldProxyDownload =
         facebookReel ||
         (detected?.name === "TikTok" && /^https:\/\//i.test(String(mediaUrl))) ||
