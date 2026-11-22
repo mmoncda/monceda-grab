@@ -1,6 +1,7 @@
 import {
   getInstagramRegularProcessorAuthHeaders,
   getProcessorAuthHeaders,
+  getStoryProcessorAuthHeaders,
 } from "../_processor-auth";
 
 const COBALT_API = "https://monceda-grab-api-us.onrender.com/";
@@ -9,6 +10,7 @@ const FALLBACK_API =
 
 const INSTAGRAM_PROCESSOR_BASE =
   (
+    process.env.MONCEDA_STORY_PROCESSOR_URL?.trim() ||
     process.env.MONCEDA_PROCESSOR_URL?.trim() ||
     "https://monceda-grab-fallback-cev7vd4azq-as.a.run.app"
   ).replace(/\/+$/, "");
@@ -47,6 +49,52 @@ function getHost(value: string) {
   } catch {
     return "";
   }
+}
+
+
+// Resolve public Facebook app share links before choosing an extractor.
+// Only permitted Facebook hosts are fetched; never follow arbitrary redirects.
+function isFacebookShareLink(value: string): boolean {
+  try {
+    const u = new URL(value);
+    const host = getHost(value);
+    return u.protocol === "https:" &&
+      ((["facebook.com", "m.facebook.com", "web.facebook.com"].includes(host) &&
+        /^\/share\/(?:r|v)\/[A-Za-z0-9_-]+\/?$/.test(u.pathname)) ||
+       (host === "fb.watch" && /^\/[A-Za-z0-9_-]+\/?$/.test(u.pathname)));
+  } catch { return false; }
+}
+
+async function resolveFacebookShareLink(value: string): Promise<string | null> {
+  if (!isFacebookShareLink(value)) return null;
+  const permittedHosts = new Set(["facebook.com", "www.facebook.com", "m.facebook.com", "web.facebook.com", "fb.watch"]);
+  const first = new URL(value);
+  first.search = ""; // tracking parameters aren't needed to identify the Reel
+  let current = first.toString();
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const parsed = new URL(current);
+    if (parsed.protocol !== "https:" || !permittedHosts.has(parsed.hostname.toLowerCase())) return null;
+    if (/^\/reel\/\d+\/?$/.test(parsed.pathname))
+      return `https://www.facebook.com${parsed.pathname}`;
+    try {
+      const response = await fetch(current, {
+        method: "GET", redirect: "manual", signal: AbortSignal.timeout(6000),
+        headers: { Accept: "text/html", "User-Agent": "Mozilla/5.0 (compatible; MoncedaGrab/1.0)" },
+      });
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        if (!location) return null;
+        current = new URL(location, current).toString();
+        continue;
+      }
+      if (!response.ok || !(response.headers.get("content-type") || "").includes("text/html")) return null;
+      const html = (await response.text()).slice(0, 250000)
+        .replace(/\\u002[fF]/g, "/").replace(/\\\//g, "/").replace(/&amp;/g, "&");
+      const match = html.match(/(?:https?:\/\/(?:www\.|m\.)?facebook\.com)?\/reel\/(\d+)/i);
+      return match ? `https://www.facebook.com/reel/${match[1]}` : null;
+    } catch { return null; }
+  }
+  return null;
 }
 
 function isFacebookStory(value: string) {
@@ -139,7 +187,10 @@ function isTikTok(value: string) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const url = String(body?.url || "").trim();
+    const submittedUrl = String(body?.url || "").trim();
+    const url = isFacebookShareLink(submittedUrl)
+      ? (await resolveFacebookShareLink(submittedUrl)) || submittedUrl
+      : submittedUrl;
 
     if (!url) {
       return Response.json(
@@ -213,7 +264,7 @@ export async function POST(request: Request) {
       const instagramRequest: RequestInit = {
         method: "POST",
         headers: isInstagramStory(url)
-          ? getProcessorAuthHeaders({
+          ? getStoryProcessorAuthHeaders({
               "Content-Type": "application/json",
               Accept: "application/json",
             })
@@ -325,7 +376,7 @@ export async function POST(request: Request) {
       if (response.ok) {
         const media: ApiResult = await response.json();
         if (media.status === "ok" && typeof media.url === "string" && media.url.startsWith("https://")) {
-          return Response.json({ ...media, fallback: true });
+          return Response.json({ ...media, fallback: true, facebook_reel: true });
         }
       }
       return Response.json({ status: "error", error: { code: "error.api.fetch.fail" } },
