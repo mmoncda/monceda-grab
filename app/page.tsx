@@ -957,7 +957,7 @@ export default function Home() {
           {facebookPreview && downloadUrl && (
             mobileShareReel ? (
               <MobileFacebookShareReelResult key={downloadUrl} source={downloadUrl}
-                previewSource={previewUrl}
+                previewSource={`${previewUrl}&mobile_fb_share=1`}
                 filename={downloadFilename || "facebook-reel.mp4"} title={message} />
             ) : (
               <FacebookReelResult key={downloadUrl} source={downloadUrl}
