@@ -886,6 +886,88 @@ export default function Home() {
                       : undefined
                   }
                   onClick={(event) => {
+                    // MONCEDA_TIKTOK_VALIDATED_DOWNLOAD
+                    if (detected?.name === "TikTok") {
+                      event.preventDefault();
+
+                      const button = event.currentTarget;
+
+                      if (button.dataset.tiktokBusy === "1") return;
+
+                      button.dataset.tiktokBusy = "1";
+                      button.setAttribute("aria-busy", "true");
+                      button.textContent = "Downloading…";
+
+                      void (async () => {
+                        try {
+                          const response = await fetch(downloadUrl, {
+                            cache: "no-store",
+                          });
+
+                          const type = (
+                            response.headers.get("Content-Type") || ""
+                          ).split(";")[0].trim().toLowerCase();
+
+                          if (
+                            !response.ok ||
+                            (!type.startsWith("video/") &&
+                             type !== "application/octet-stream")
+                          ) {
+                            throw new Error(
+                              `TikTok media unavailable (HTTP ${response.status}). Please try again.`
+                            );
+                          }
+
+                          const blob = await response.blob();
+
+                          if (blob.size < 1024) {
+                            throw new Error("Invalid TikTok media response.");
+                          }
+
+                          const bytes = new Uint8Array(
+                            await blob.slice(0, 12).arrayBuffer()
+                          );
+
+                          const signature = String.fromCharCode(
+                            ...bytes.slice(4, 8)
+                          );
+
+                          if (signature !== "ftyp") {
+                            throw new Error("TikTok did not return a valid MP4 file.");
+                          }
+
+                          const objectUrl = URL.createObjectURL(blob);
+                          const link = document.createElement("a");
+
+                          link.href = objectUrl;
+                          link.download = downloadFilename || "tiktok-video.mp4";
+
+                          document.body.appendChild(link);
+                          link.click();
+                          link.remove();
+
+                          window.setTimeout(
+                            () => URL.revokeObjectURL(objectUrl),
+                            60000
+                          );
+
+                          setMessage("TikTok video downloaded.");
+                        } catch (error) {
+                          setMessage(
+                            error instanceof Error
+                              ? error.message
+                              : "TikTok download failed."
+                          );
+                        } finally {
+                          button.dataset.tiktokBusy = "";
+                          button.removeAttribute("aria-busy");
+                          button.textContent = "Download media ↓";
+                        }
+                      })();
+
+                      return;
+                    }
+
                     if (detected?.name === "YouTube") {
                       event.preventDefault();
 
